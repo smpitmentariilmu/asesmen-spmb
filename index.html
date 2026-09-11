@@ -53,7 +53,7 @@
 <body class="text-slate-800 antialiased h-screen flex overflow-hidden font-sans">
 
     <!-- Global Loader -->
-    <div id="global-loader" class="fixed inset-0 flex-col items-center justify-center hidden">
+    <div id="global-loader" class="fixed inset-0 hidden flex-col items-center justify-center transition-opacity">
         <i class="fa-solid fa-circle-notch fa-spin text-primary-500 text-5xl mb-4"></i>
         <p class="text-lg font-bold text-slate-700" id="loader-text">Memproses data...</p>
     </div>
@@ -107,7 +107,6 @@
                     <button id="btn-login-submit" type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 rounded-xl shadow-md transition-all active:scale-[0.98] mt-2 flex justify-center items-center gap-2">Masuk ke Sistem <i class="fa-solid fa-arrow-right-to-bracket ml-1"></i></button>
                 </form>
             </div>
-            <div class="absolute bottom-6 text-center w-full text-[11px] font-semibold text-slate-400 hidden lg:block">&copy; 2026 SMPIT Mentari Ilmu Karawang. Sistem SPMB Terpadu.</div>
         </div>
     </div>
 
@@ -206,20 +205,46 @@
                             <div id="ketercapaian-filter-container" class="flex flex-col sm:flex-row gap-2 w-full md:w-auto flex-wrap justify-end">
                                 <select id="ketercapaian-filter-gender" onchange="renderTotalKetercapaian()" class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[12px] font-bold text-slate-700 shadow-sm outline-none cursor-pointer"><option value="ALL">Semua Kelamin</option><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option></select>
                                 <select id="ketercapaian-filter-status" onchange="renderTotalKetercapaian()" class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[12px] font-bold text-slate-700 shadow-sm outline-none cursor-pointer"><option value="ALL">Semua Status</option><option value="Lengkap">Lengkap</option><option value="Sebagian Dinilai">Sebagian Dinilai</option><option value="Belum Lengkap">Belum Lengkap</option></select>
-                                <select id="ketercapaian-filter-sort" onchange="renderTotalKetercapaian()" class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[12px] font-bold text-slate-700 shadow-sm outline-none cursor-pointer"><option value="DEFAULT">Urutan Normal</option><option value="TOT_DESC">Total Terbesar &rarr; Terkecil</option><option value="TOT_ASC">Total Terkecil &rarr; Terbesar</option><option value="PCT_DESC">Persentase Terbesar &rarr; Terkecil</option><option value="PCT_ASC">Persentase Terkecil &rarr; Terbesar</option><option value="SMP_DESC">Nilai SMP Terbesar &rarr; Terkecil</option><option value="SMP_ASC">Nilai SMP Terkecil &rarr; Terbesar</option><option value="YAY_DESC">Nilai Yayasan Terbesar &rarr; Terkecil</option><option value="YAY_ASC">Nilai Yayasan Terkecil &rarr; Terbesar</option></select>
+                                <select id="ketercapaian-filter-sort" onchange="renderTotalKetercapaian()" class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[12px] font-bold text-slate-700 shadow-sm outline-none cursor-pointer">
+                                    <option value="DEFAULT">Urutan Normal</option>
+                                    <option value="TOT_DESC">Total Terbesar &rarr; Terkecil</option>
+                                    <option value="TOT_ASC">Total Terkecil &rarr; Terbesar</option>
+                                    <option value="PCT_DESC">Persentase Terbesar &rarr; Terkecil</option>
+                                    <option value="PCT_ASC">Persentase Terkecil &rarr; Terbesar</option>
+                                    <option value="SMP_DESC">Nilai SMP Terbesar &rarr; Terkecil</option>
+                                    <option value="SMP_ASC">Nilai SMP Terkecil &rarr; Terbesar</option>
+                                    <option value="YAY_DESC">Nilai Yayasan Terbesar &rarr; Terkecil</option>
+                                    <option value="YAY_ASC">Nilai Yayasan Terkecil &rarr; Terbesar</option>
+                                </select>
                             </div>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse whitespace-nowrap min-w-max" id="ketercapaian-table">
-                                <thead><tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] uppercase tracking-wider font-extrabold"><th class="py-3 px-4 w-10 text-center">No</th><th class="py-3 px-4">Nama Siswa</th><th class="py-3 px-4">Asal Sekolah</th><th class="py-3 px-4 text-center text-primary-600">Nilai SMP</th><th class="py-3 px-4 text-center text-gold-600">Nilai Yayasan</th><th class="py-3 px-4 text-center text-blue-600">Total / 200</th><th class="py-3 px-4 text-center">Persentase</th><th class="py-3 px-4 hidden xl:table-cell">Catatan Penguji SMP</th><th class="py-3 px-4 text-center">Status</th><th class="py-3 px-4 text-right">Aksi</th></tr></thead>
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] uppercase tracking-wider font-extrabold">
+                                        <th class="py-3 px-4 w-10 text-center">No</th>
+                                        <th class="py-3 px-4">Nama Siswa</th>
+                                        <th class="py-3 px-4">Asal Sekolah</th>
+                                        <th class="py-3 px-4 text-center text-primary-600">Nilai SMP</th>
+                                        <th class="py-3 px-4 text-center text-gold-600">Nilai Yayasan</th>
+                                        <th class="py-3 px-4 text-center text-blue-600">Total / 200</th>
+                                        <th class="py-3 px-4 text-center">Persentase</th>
+                                        <th class="py-3 px-4 hidden xl:table-cell">Catatan Penguji SMP</th>
+                                        <th class="py-3 px-4 text-center">Status</th>
+                                        <th class="py-3 px-4 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
                                 <tbody id="ketercapaian-tbody" class="text-[13px] font-medium divide-y divide-slate-100 text-slate-600"></tbody>
                             </table>
                         </div>
-                        <div id="ketercapaian-empty" class="hidden flex-col items-center justify-center py-12 text-center px-4"><div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 text-3xl mb-3"><i class="fa-solid fa-folder-open"></i></div><h3 class="text-slate-700 font-bold mb-1">Data tidak ditemukan</h3></div>
+                        <div id="ketercapaian-empty" class="hidden flex-col items-center justify-center py-12 text-center px-4">
+                            <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 text-3xl mb-3"><i class="fa-solid fa-folder-open"></i></div>
+                            <h3 class="text-slate-700 font-bold mb-1">Data tidak ditemukan</h3>
+                        </div>
                     </div>
                 </div>
 
-                <!-- GRAFIK -->
+                <!-- GRAFIK & STATISTIK -->
                 <div id="page-grafik" class="page-view hidden animate-fade-in">
                     <div class="mb-6"><h2 class="text-2xl font-extrabold text-slate-800">Grafik & Statistik Menyeluruh</h2><p class="text-slate-500 text-sm mt-1">Visualisasi data pengisian dan penilaian SPMB.</p></div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -231,14 +256,22 @@
                         <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-card border border-slate-100"><h3 class="text-sm font-extrabold text-slate-700 mb-4 text-center">Distribusi Total Ketercapaian</h3><div class="relative h-64 w-full flex justify-center"><canvas id="chart-distribusi-total-full"></canvas></div></div>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-card border border-slate-100"><h3 class="text-sm font-extrabold text-slate-700 mb-4 text-center">Distribusi Nilai SMP</h3><div class="relative h-64 w-full flex justify-center"><canvas id="chart-distribusi-smp-full"></canvas></div></div>
-                        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-card border border-slate-100"><h3 class="text-sm font-extrabold text-slate-700 mb-4 text-center">Analisis Bagian (Radar)</h3><div class="relative h-64 w-full flex justify-center"><canvas id="chart-radar-full"></canvas></div></div>
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-card border border-slate-100">
+                            <h3 class="text-sm font-extrabold text-slate-700 mb-4 text-center">Distribusi Nilai SMP</h3>
+                            <div class="relative h-64 w-full flex justify-center"><canvas id="chart-distribusi-smp-full"></canvas></div>
+                        </div>
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-card border border-slate-100">
+                            <h3 class="text-sm font-extrabold text-slate-700 mb-4 text-center">Analisis Bagian (Radar)</h3>
+                            <div class="relative h-64 w-full flex justify-center"><canvas id="chart-radar-full"></canvas></div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- USERS -->
                 <div id="page-users" class="page-view hidden animate-fade-in">
-                    <div class="mb-6"><h2 class="text-2xl font-extrabold text-slate-800">Manajemen Pengguna</h2><p class="text-slate-500 text-sm mt-1">Data dikelola langsung dari Google Sheets (Sheet: USERS).</p></div>
+                    <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                        <div><h2 class="text-2xl font-extrabold text-slate-800">Manajemen Pengguna</h2><p class="text-slate-500 text-sm mt-1">Data dikelola di Google Sheets (Sheet: USERS).</p></div>
+                    </div>
                     <div class="bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden">
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse whitespace-nowrap min-w-max">
@@ -251,10 +284,12 @@
 
                 <!-- SETTINGS -->
                 <div id="page-settings" class="page-view hidden animate-fade-in max-w-3xl">
-                    <div class="mb-6"><h2 class="text-2xl font-extrabold text-slate-800">Pengaturan Sistem</h2></div>
+                    <div class="mb-6"><h2 class="text-2xl font-extrabold text-slate-800">Pengaturan Sistem</h2><p class="text-slate-500 text-sm mt-1">Konfigurasi dasar sistem SPMB.</p></div>
                     <div class="bg-white rounded-2xl shadow-card border border-slate-100 p-6 space-y-5">
-                        <div><label class="block text-[13px] font-bold text-slate-700 mb-1.5">Nama Sistem</label><input type="text" value="Sistem Penguji SPMB" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none" readonly></div>
-                        <div><label class="block text-[13px] font-bold text-slate-700 mb-1.5">Sumber Database</label><input type="text" value="Google Sheets Berjalan via Apps Script" class="w-full px-4 py-2.5 bg-green-50 text-green-700 border border-green-200 rounded-xl outline-none font-bold" readonly></div>
+                        <div><label class="block text-[13px] font-bold text-slate-700 mb-1.5">Nama Sistem</label><input type="text" value="Sistem Penguji SPMB" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-[14px] font-semibold text-slate-700" readonly></div>
+                        <div><label class="block text-[13px] font-bold text-slate-700 mb-1.5">Institusi</label><input type="text" value="SMPIT Mentari Ilmu Karawang" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-[14px] font-semibold text-slate-700" readonly></div>
+                        <div><label class="block text-[13px] font-bold text-slate-700 mb-1.5">Tahun Penerimaan</label><input type="text" value="2027/2028" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-[14px] font-semibold text-slate-700" readonly></div>
+                        <div><label class="block text-[13px] font-bold text-slate-700 mb-1.5">Status API Server</label><input type="text" value="Terkoneksi ke Google Sheets" class="w-full px-4 py-2.5 bg-green-50 border border-green-200 rounded-xl outline-none text-[14px] font-bold text-green-700" readonly></div>
                     </div>
                 </div>
 
@@ -262,7 +297,9 @@
                 <div id="page-grading" class="page-view hidden animate-fade-in relative flex flex-col xl:flex-row gap-6 items-start">
                     <div class="w-full xl:w-1/4 xl:sticky xl:top-6 bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden flex-shrink-0 z-10">
                         <div class="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between xl:block">
-                            <button onclick="goBackFromGrading()" class="text-slate-500 hover:text-primary-600 font-bold text-[13px] transition-colors flex items-center gap-2 mb-0 xl:mb-4"><i class="fa-solid fa-arrow-left"></i> <span class="hidden sm:inline">Kembali</span></button>
+                            <button onclick="goBackFromGrading()" class="text-slate-500 hover:text-primary-600 font-bold text-[13px] transition-colors flex items-center gap-2 mb-0 xl:mb-4">
+                                <i class="fa-solid fa-arrow-left"></i> <span class="hidden sm:inline">Kembali</span><span class="hidden xl:inline"> ke Daftar</span>
+                            </button>
                             <div class="text-right xl:text-left">
                                 <div class="text-[10px] font-extrabold text-gold-600 uppercase tracking-widest mb-1" id="grading-header-type">Menilai Siswa</div>
                                 <h3 class="font-extrabold text-slate-800 text-sm sm:text-lg leading-tight truncate max-w-[150px] sm:max-w-none" id="grading-student-name">Nama Siswa</h3>
@@ -272,25 +309,32 @@
                         <div class="p-3 hidden xl:block max-h-[calc(100vh-280px)] overflow-y-auto hide-scrollbar" id="section-nav"></div>
                         <div class="block xl:hidden p-3 border-t border-slate-100"><select id="mobile-section-nav" onchange="scrollToSection(this.value)" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 text-[13px] outline-none appearance-none"></select></div>
                         <div class="p-4 bg-primary-50 border-t border-primary-100">
-                            <div class="flex justify-between items-center mb-1.5"><span class="text-[11px] font-extrabold text-primary-700 uppercase">Progres Penilaian</span><span class="text-xs font-extrabold text-primary-800" id="grading-progress-text">0/20</span></div>
-                            <div class="w-full bg-white rounded-full h-2 overflow-hidden border border-primary-200/50"><div id="grading-progress-bar" class="bg-primary-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div></div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="text-[11px] font-extrabold text-primary-700 uppercase">Progres Penilaian</span>
+                                <span class="text-xs font-extrabold text-primary-800" id="grading-progress-text">0/20</span>
+                            </div>
+                            <div class="w-full bg-white rounded-full h-2 overflow-hidden border border-primary-200/50">
+                                <div id="grading-progress-bar" class="bg-primary-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="w-full xl:w-3/4 pb-20">
                         <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-4 flex items-start gap-3 mb-6" id="grading-instruction-box">
                             <i class="fa-solid fa-circle-info text-blue-500 mt-0.5 flex-shrink-0"></i>
                             <div>
-                                <p class="text-[13px] text-blue-900 font-bold">Instruksi Penilaian</p>
-                                <p class="text-[12px] text-blue-800 mt-1 leading-relaxed">Berikan nilai pada kolom <strong>Nilai Manual</strong>. Jika dikosongkan, maka <strong>Nilai Sistem</strong> yang akan digunakan. Nilai otomatis tersimpan ke server sesaat setelah diketik.</p>
+                                <p class="text-[13px] text-blue-900 font-bold" id="grading-instruction-title">Instruksi Penilaian</p>
+                                <p class="text-[12px] text-blue-800 mt-1 leading-relaxed">Berikan nilai pada kolom <strong>Nilai Manual</strong> (0-100). Jika dikosongkan, maka <strong>Nilai Sistem</strong> yang akan digunakan. Tambahkan kesimpulan umum di kolom <strong>Catatan Penguji SMP</strong> (di akhir halaman). Perubahan nilai otomatis tersimpan ke server.</p>
                             </div>
                         </div>
                         <div id="grading-form-container" class="space-y-6 sm:space-y-8"></div>
                         
+                        <!-- CATATAN PENGUJI UMUM (Hanya untuk SMP) -->
                         <div id="grading-general-note-container" class="mt-8 bg-white rounded-2xl shadow-card border border-slate-200 p-5 sm:p-6 hidden">
                             <div class="flex justify-between items-center mb-3">
                                 <h4 class="font-extrabold text-slate-800 text-[15px] flex items-center gap-2"><i class="fa-solid fa-clipboard-user text-primary-500"></i> Catatan Penguji SMP</h4>
-                                <span class="text-[10px] text-green-500 font-bold save-indicator" id="save-general-note"><i class="fa-solid fa-check mr-1"></i>Tersimpan</span>
+                                <span class="text-[10px] text-green-500 font-bold save-indicator" id="save-general-note"><i class="fa-solid fa-check mr-1"></i>Tersimpan ke Server</span>
                             </div>
+                            <p class="text-[11px] text-slate-500 font-semibold mb-3">Berikan kesimpulan atau observasi umum terhadap calon siswa berdasarkan keseluruhan wawancara (Maksimal 1 paragraf).</p>
                             <textarea id="grading-general-note" oninput="handleGeneralNoteChange(this.value)" placeholder="Tuliskan kesimpulan menyeluruh..." class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-primary-300 focus:ring-2 focus:ring-primary-100 outline-none text-[13px] font-medium text-slate-700 resize-y transition-all min-h-[120px]"></textarea>
                         </div>
                     </div>
@@ -298,7 +342,11 @@
 
                 <!-- READONLY DETAIL FORMULIR -->
                 <div id="page-detail-form" class="page-view hidden animate-fade-in max-w-4xl mx-auto pb-10">
-                    <div class="mb-6 flex justify-between items-center"><button onclick="goBackFromGrading()" class="text-slate-500 hover:text-primary-600 font-bold text-[13px] transition-colors flex items-center gap-2 bg-white px-4 py-2 border border-slate-200 rounded-xl shadow-sm"><i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar</button></div>
+                    <div class="mb-6 flex justify-between items-center">
+                        <button onclick="goBackFromGrading()" class="text-slate-500 hover:text-primary-600 font-bold text-[13px] transition-colors flex items-center gap-2 bg-white px-4 py-2 border border-slate-200 rounded-xl shadow-sm">
+                            <i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar
+                        </button>
+                    </div>
                     <div class="bg-white rounded-3xl shadow-card border border-slate-100 p-6 sm:p-8 mb-6 relative overflow-hidden text-center">
                         <div class="absolute inset-0 z-0 opacity-10" style="background-image: radial-gradient(#10b981 1px, transparent 1px); background-size: 20px 20px;"></div>
                         <div class="relative z-10">
@@ -310,6 +358,7 @@
                     </div>
                     <div id="detail-answers-container" class="space-y-4 sm:space-y-6"></div>
                 </div>
+
             </main>
         </div>
     </div>
@@ -321,19 +370,20 @@
             <div class="p-4 sm:p-5 border-b border-slate-100 bg-slate-50 flex-shrink-0">
                 <div class="flex items-start gap-3">
                     <div class="w-10 h-10 rounded-full bg-gold-100 text-gold-600 flex items-center justify-center text-lg flex-shrink-0"><i class="fa-solid fa-trophy"></i></div>
-                    <div><h3 class="text-base sm:text-lg font-extrabold text-slate-800" id="modal-p-nama">Nama Lomba</h3>
+                    <div class="min-w-0">
+                        <h3 class="text-base sm:text-lg font-extrabold text-slate-800 leading-tight truncate" id="modal-p-nama">Nama Lomba</h3>
                         <div class="flex flex-wrap gap-2 mt-2">
-                            <span class="bg-primary-100 text-primary-700 py-0.5 px-2 rounded-md text-[11px] font-bold" id="modal-p-pencapaian">-</span>
-                            <span class="bg-slate-100 text-slate-600 py-0.5 px-2 rounded-md text-[11px] font-bold" id="modal-p-tingkat">-</span>
-                            <span class="bg-blue-100 text-blue-700 py-0.5 px-2 rounded-md text-[11px] font-bold" id="modal-p-tahun">-</span>
+                            <span class="bg-primary-100 text-primary-700 py-0.5 px-2 rounded-md text-[11px] font-bold" id="modal-p-pencapaian">Juara 1</span>
+                            <span class="bg-slate-100 text-slate-600 py-0.5 px-2 rounded-md text-[11px] font-bold" id="modal-p-tingkat">Tingkat Provinsi</span>
+                            <span class="bg-blue-100 text-blue-700 py-0.5 px-2 rounded-md text-[11px] font-bold" id="modal-p-tahun">2025</span>
                         </div>
                     </div>
                 </div>
-                <p class="text-[12px] text-slate-600 mt-3 font-medium bg-white p-3 rounded-xl border border-slate-100" id="modal-p-keterangan">-</p>
+                <p class="text-[12px] sm:text-[13px] text-slate-600 mt-3 font-medium bg-white p-3 rounded-xl border border-slate-100 max-h-24 overflow-y-auto" id="modal-p-keterangan">Keterangan lomba</p>
             </div>
-            <div class="flex-grow bg-slate-200 relative overflow-hidden min-h-[50vh] flex items-center justify-center" id="modal-p-preview-container"></div>
-            <div class="p-3 sm:p-4 bg-white border-t border-slate-100 flex justify-end">
-                <a href="#" id="modal-p-link" target="_blank" class="w-full sm:w-auto bg-primary-600 hover:bg-primary-700 text-white font-bold py-2.5 px-6 rounded-xl text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Bukti Asli</a>
+            <div class="flex-grow bg-slate-200 relative overflow-hidden min-h-[50vh] sm:min-h-[500px] flex items-center justify-center" id="modal-p-preview-container"></div>
+            <div class="p-3 sm:p-4 bg-white border-t border-slate-100 flex justify-end flex-shrink-0">
+                <a href="#" id="modal-p-link" target="_blank" class="w-full sm:w-auto bg-primary-600 hover:bg-primary-700 text-white font-bold py-2.5 px-6 rounded-xl transition-colors text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Bukti Asli</a>
             </div>
         </div>
     </div>
@@ -342,27 +392,30 @@
     <div id="modal-detail-ketercapaian" class="fixed inset-0 bg-slate-900/50 z-[200] hidden flex-col items-center justify-center p-4 animate-fade-in">
         <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col relative">
             <button onclick="closeModalKetercapaian()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 text-xl z-10"><i class="fa-solid fa-xmark"></i></button>
-            <div class="p-6 border-b border-slate-100 bg-slate-50 text-center relative">
-                <h3 class="text-[11px] font-extrabold text-primary-600 uppercase tracking-widest mb-1">Detail Ketercapaian Siswa</h3>
-                <h2 class="text-xl font-extrabold text-slate-800" id="mk-nama">Nama Siswa</h2>
-                <p class="text-xs font-medium text-slate-500 mt-1" id="mk-asal">L/P • Asal Sekolah</p>
+            <div class="p-6 border-b border-slate-100 bg-slate-50 text-center relative overflow-hidden">
+                <div class="absolute inset-0 z-0 opacity-5" style="background-image: radial-gradient(#10b981 1px, transparent 1px); background-size: 15px 15px;"></div>
+                <div class="relative z-10">
+                    <h3 class="text-[11px] font-extrabold text-primary-600 uppercase tracking-widest mb-1">Detail Ketercapaian Siswa</h3>
+                    <h2 class="text-xl font-extrabold text-slate-800 leading-tight" id="mk-nama">Nama Siswa</h2>
+                    <p class="text-xs font-medium text-slate-500 mt-1" id="mk-asal">L/P • Asal Sekolah</p>
+                </div>
             </div>
             <div class="p-6 space-y-5 bg-white">
                 <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <div><p class="text-[11px] font-bold text-slate-500 uppercase mb-1">Penilaian SMP</p><p class="text-xs text-slate-400">Maks. 100</p></div>
+                    <div><p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Penilaian SMP</p><p class="text-xs text-slate-400">Maks. 100 Poin</p></div>
                     <div class="text-2xl font-extrabold text-primary-600 font-mono" id="mk-smp">0</div>
                 </div>
                 <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100" id="mk-yayasan-container">
-                    <div><p class="text-[11px] font-bold text-slate-500 uppercase mb-1">Penilaian Yayasan</p><p class="text-xs text-slate-400">Maks. 100</p></div>
+                    <div><p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Penilaian Yayasan</p><p class="text-xs text-slate-400">Maks. 100 Poin</p></div>
                     <div class="text-2xl font-extrabold text-gold-600 font-mono" id="mk-yayasan">0</div>
                 </div>
                 <div class="flex justify-between items-center bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                    <div><p class="text-[11px] font-bold text-blue-700 uppercase mb-1">Total Ketercapaian</p><p class="text-xs text-blue-500 font-semibold">Persentase: <span id="mk-pct">0%</span></p></div>
+                    <div><p class="text-[11px] font-bold text-blue-700 uppercase tracking-wider mb-1">Total Ketercapaian</p><p class="text-xs text-blue-500 font-semibold">Persentase: <span id="mk-pct">0%</span></p></div>
                     <div class="text-3xl font-extrabold text-blue-700 font-mono" id="mk-total">0</div>
                 </div>
                 <div class="border-t border-slate-100 pt-5">
-                    <p class="text-[11px] font-bold text-slate-500 uppercase mb-2">Catatan Penguji SMP</p>
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-[12px] text-slate-700 max-h-32 overflow-y-auto" id="mk-catatan">Tidak ada catatan.</div>
+                    <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Catatan Penguji SMP</p>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-[12px] text-slate-700 leading-relaxed max-h-32 overflow-y-auto" id="mk-catatan">Tidak ada catatan.</div>
                 </div>
             </div>
         </div>
@@ -373,7 +426,7 @@
         // APPS SCRIPT API URL
         // =====================================================
         // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHGTEDAECWb6rUPhyLInFlrjBeCLweGM1eFM19hCmX6gqROxEjGBALswTQMMNG936N/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-D5C-jEtDpKOLYTIp3KfRHh_4-mX9MdddATOJCJhAfCME1BTgwRH0NqTN4hbxV1c9aw/exec';
 
         // =====================================================
         // API FETCH WRAPPER
@@ -385,6 +438,8 @@
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    redirect: 'follow', // Penting untuk Apps Script
                     body: JSON.stringify({ action: action, payload: payload })
                 });
                 const result = await response.json();
@@ -397,7 +452,7 @@
         }
 
         // =====================================================
-        // SCHEMA SCORING (DIPERTAHANKAN UNTUK RENDER UI)
+        // SCHEMA DAN LOGIKA SCORING (TAMPILAN FRONTEND)
         // =====================================================
         const fullSchemaSMP = [
             { id: "sec1", title: "Profil Singkat Calon Murid", items: [ 
@@ -427,8 +482,8 @@
                 { id: "tanggung_jawab", label: "Bentuk tanggung jawab kemandirian anak", scored: true, max: 7 }, 
                 { id: "pendamping_utama", label: "Siapa pendamping utama pendidikan anak di rumah?", scored: true, max: 4 }, 
                 { id: "kesediaan_pembiasaan", label: "Kesediaan keluarga melanjutkan pembiasaan sekolah", scored: true, max: 4 }, 
-                { id: "kebiasaan_belajar", label: "Kebiasaan belajar anak di rumah", scored: true, max: 7 }, 
-                { id: "parent_school", label: "Program Parent Schools (program sekolah orang tua)", scored: true, max: 5 } 
+                { id: "kebiasaan_belajar", label: "Kebiasaan belajar anak di rumah", scored: true, max: 6 }, 
+                { id: "parent_school", label: "Program Parent Schools (program sekolah orang tua)", scored: true, max: 6 } 
             ] },
             { id: "sec6", title: "Pernyataan Komitmen", items: [ 
                 { id: "kemitraan", label: "Komitmen kemitraan yang disetujui orang tua", scored: true, max: 8 },
@@ -457,18 +512,19 @@
             ] }
         ];
 
-        const totalScoredItemsSMP = fullSchemaSMP.reduce((acc, sec) => acc + sec.items.filter(i=>i.scored).length, 0); 
-        const totalScoredItemsYayasan = fullSchemaYayasan.reduce((acc, sec) => acc + sec.items.filter(i=>i.scored).length, 0);
+        // Total point variables to easily verify completion percentages
+        const totalScoredItemsSMP = 100; // Maksimal skor SMP
+        const totalScoredItemsYayasan = 100; // Maksimal skor Yayasan
 
         // =====================================================
-        // APLIKASI UTAMA (STATE)
+        // STATE UTAMA APLIKASI
         // =====================================================
         let db = { users: [], students: {} };
         let currentUser = null;
         let activePage = '';
         let activeStudentId = null;
         let activeTableType = ''; 
-        let activeGradingType = 'SMP'; 
+        let activeGradingType = 'SMP';
         let dashCharts = {}; 
         let fullCharts = {}; 
 
@@ -485,7 +541,6 @@
         }
 
         function togglePinVisibility() { const input = document.getElementById('login-pin'); const icon = document.getElementById('login-pin-icon'); if (input.type === 'password') { input.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); } else { input.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); } }
-        function fillLogin(id, pin) { document.getElementById('login-id').value = id; document.getElementById('login-pin').value = pin; }
         
         async function handleLogin(e) { 
             e.preventDefault(); 
@@ -499,10 +554,10 @@
                 currentUser = user; 
                 sessionStorage.setItem('spmb_v5_gas_session', JSON.stringify(currentUser)); 
                 document.getElementById('login-error').classList.add('hidden'); 
-                showApp(); 
+                showApp();
             } catch (err) {
-                document.getElementById('login-error').classList.remove('hidden'); 
-                document.getElementById('login-error-text').innerText = err.message;
+                document.getElementById('login-error').classList.remove('hidden');
+                document.getElementById('login-error-text').innerText = err.message || "Gagal masuk";
             } finally {
                 btn.innerHTML = 'Masuk ke Sistem <i class="fa-solid fa-arrow-right-to-bracket ml-1"></i>';
             }
@@ -511,7 +566,7 @@
         function handleLogout() { currentUser = null; sessionStorage.removeItem('spmb_v5_gas_session'); document.getElementById('app-layout').classList.add('hidden'); document.getElementById('view-login').classList.remove('hidden'); }
 
         async function loadAppData(isRefresh = false) {
-            showLoader("Membaca database dari Google Sheets...");
+            showLoader("Memuat database dari Google Sheets...");
             try {
                 const data = await apiRequest('getAppData', { user: currentUser });
                 db = data;
@@ -520,7 +575,7 @@
                 else { navigateTo('dashboard'); }
             } catch (err) {
                 hideLoader();
-                alert("Gagal memuat data dari server:\n" + err.message);
+                alert("Gagal memuat data: " + err.message);
                 if(!isRefresh) handleLogout();
             }
         }
@@ -531,7 +586,7 @@
         const menuConfig = [
             { id: 'dashboard', label: 'Dashboard Utama', icon: 'fa-chart-pie', roles: ['admin', 'panitia', 'penguji'] },
             { id: 'data_peserta', label: 'Data Peserta', icon: 'fa-users', roles: ['admin', 'panitia'] },
-            { id: 'daftar_peserta', label: 'Daftar Peserta', icon: 'fa-users-viewfinder', roles: ['penguji'] },
+            { id: 'daftar_peserta', label: 'Daftar Calon Siswa', icon: 'fa-users-viewfinder', roles: ['penguji'] },
             { id: 'rekap_pengisian', label: 'Rekap Pengisian Form', icon: 'fa-file-signature', roles: ['admin', 'panitia'] },
             { id: 'rekap_penilaian', label: 'Rekap Penilaian', icon: 'fa-star', roles: ['admin', 'panitia'] },
             { id: 'penilaian_saya', label: 'Penilaian Saya', icon: 'fa-star-half-stroke', roles: ['penguji'] },
@@ -549,8 +604,8 @@
             if(currentUser.role === 'admin') badge.className = "text-[10px] font-bold text-red-600 uppercase mt-0.5";
             else if(currentUser.role === 'panitia') badge.className = "text-[10px] font-bold text-blue-600 uppercase mt-0.5";
             else badge.className = "text-[10px] font-bold text-gold-600 uppercase mt-0.5";
-            buildSidebar();
-            loadAppData(); 
+            buildSidebar(); 
+            loadAppData();
         }
 
         function toggleSidebar() { const sb = document.getElementById('sidebar'); const overlay = document.getElementById('sidebar-overlay'); if(sb.classList.contains('-translate-x-full')) { sb.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); } else { sb.classList.add('-translate-x-full'); overlay.classList.add('hidden'); } }
@@ -605,29 +660,36 @@
             
             if (type === 'SMP') {
                 const itemsObj = student.grading.items;
+                let scoredCount = 0;
                 fullSchemaSMP.forEach(sec => {
                     sec.items.forEach(item => {
-                        if(item.scored && itemsObj[item.id] && itemsObj[item.id].nilaiFinal !== null && itemsObj[item.id].nilaiFinal !== undefined) {
-                            if(itemsObj[item.id].nilaiManual !== null || student.statusPengisian === "Sudah Mengisi") {
-                                graded++; totalScore += itemsObj[item.id].nilaiFinal;
+                        if(item.scored) {
+                            scoredCount++;
+                            if (itemsObj[item.id] && itemsObj[item.id].nilaiFinal !== null && itemsObj[item.id].nilaiFinal !== undefined) {
+                                // Jika form sudah diisi, otomatis nilai sistem terisi (dan karenanya terhitung graded)
+                                if(itemsObj[item.id].nilaiManual !== null || student.statusPengisian === "Sudah Mengisi") {
+                                    graded++; 
+                                    totalScore += Number(itemsObj[item.id].nilaiFinal);
+                                }
                             }
                         }
                     });
                 });
-                let pct = totalScoredItemsSMP === 0 ? 0 : Math.round((graded/totalScoredItemsSMP)*100);
+                let pct = totalScoredItemsSMP === 0 ? 0 : Math.round((totalScore/totalScoredItemsSMP)*100);
                 if(student.statusPengisian !== "Sudah Mengisi") { graded = 0; pct = 0; totalScore = 0; }
-                else { pct = 100; graded = totalScoredItemsSMP; } 
+                else { pct = 100; graded = scoredCount; } 
 
                 let hasManual = Object.values(itemsObj).some(g => g.nilaiManual !== null);
-                let isComplete = student.statusPengisian === "Sudah Mengisi" && (student.grading.catatanPenguji !== "" || hasManual);
-                return { graded, total: totalScoredItemsSMP, pct, totalScore, isComplete };
+                let isComplete = student.statusPengisian === "Sudah Mengisi" && (student.grading.catatanPenguji !== "" || hasManual || pct === 100);
+                return { graded, total: scoredCount, pct, totalScore, isComplete };
             } 
             else if (type === 'YAYASAN') {
-                // Yayasan auto-calculated, so if form is complete, Yayasan is complete.
+                // Yayasan auto-calculated
                 let isComplete = student.statusPengisian === "Sudah Mengisi";
                 let totalS = student.gradingYayasan.totalNilaiFinal || 0;
-                let gr = isComplete ? totalScoredItemsYayasan : 0;
-                return { graded: gr, total: totalScoredItemsYayasan, pct: isComplete ? 100 : 0, totalScore: totalS, isComplete: isComplete };
+                // Kita asumsikan ada 7 poin yayasan yg dinilai otomatis jika form diisi
+                let gr = isComplete ? 7 : 0;
+                return { graded: gr, total: 7, pct: isComplete ? 100 : 0, totalScore: totalS, isComplete: isComplete };
             }
         }
 
@@ -754,7 +816,7 @@
                             ${actionList.length === 0 ? '<div class="text-center py-10 text-slate-400 font-bold flex flex-col items-center"><i class="fa-solid fa-check-circle text-5xl text-green-400 mb-3"></i>Semua siswa sudah dinilai!</div>' : 
                             '<div class="space-y-3 overflow-y-auto flex-grow hide-scrollbar pr-1 sm:pr-2">' + actionList.slice(0,5).map(s => {
                                 const p = calcStudentProgress(s, 'SMP');
-                                return `<div class="flex flex-col sm:flex-row justify-between sm:items-center bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-100 hover:border-primary-200 gap-3"><div class="min-w-0"><h4 class="font-extrabold text-slate-800 text-[13px] sm:text-[14px] truncate">${s.nama}</h4><p class="text-[11px] font-medium text-slate-500">Progres: <span class="font-bold ${p.graded>0?'text-primary-600':'text-red-500'}">${p.graded}/${p.total} Item</span></p></div><button onclick="openGrading('${s.id}', 'SMP')" class="w-full sm:w-auto bg-white border-2 border-primary-200 text-primary-600 hover:bg-primary-50 font-bold py-2 px-4 rounded-xl text-xs flex justify-center items-center"><i class="fa-solid ${p.graded>0?'fa-pen-to-square':'fa-play'} mr-1.5"></i> ${p.graded>0?'Lanjutkan':'Mulai'}</button></div>`
+                                return `<div class="flex flex-col sm:flex-row justify-between sm:items-center bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-100 hover:border-primary-200 transition-colors gap-3"><div class="min-w-0"><h4 class="font-extrabold text-slate-800 text-[13px] sm:text-[14px] truncate">${s.nama}</h4><p class="text-[11px] font-medium text-slate-500">Progres Penilaian: <span class="font-bold ${p.graded>0?'text-primary-600':'text-red-500'}">${p.graded}/${p.total} Item</span></p></div><button onclick="openGrading('${s.id}', 'SMP')" class="w-full sm:w-auto bg-white border-2 border-primary-200 text-primary-600 hover:bg-primary-50 font-bold py-2 px-4 rounded-xl text-xs flex justify-center items-center transition-colors"><i class="fa-solid ${p.graded>0?'fa-pen-to-square':'fa-play'} mr-1.5"></i> ${p.graded>0?'Lanjutkan':'Mulai'}</button></div>`
                             }).join('') + '</div>'}
                         </div>
                     </div>
@@ -788,10 +850,10 @@
 
             if(type === 'REKAP_PENILAIAN' || type === 'ITEM_YAYASAN') filterContainer.innerHTML += `<select id="table-filter-sort" onchange="renderActiveTable()" class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[12px] font-bold text-slate-700 shadow-sm outline-none cursor-pointer"><option value="DEFAULT">Urutan Normal</option><option value="DESC">Nilai Terbesar &rarr; Terkecil</option><option value="ASC">Nilai Terkecil &rarr; Terbesar</option></select>`;
 
-            if(type === 'DATA_PESERTA') head.innerHTML = `<th class="py-3 px-4 w-10">No</th><th class="py-3 px-4">ID Peserta</th><th class="py-3 px-4">Nama Siswa</th><th class="py-3 px-4">Asal Sekolah</th><th class="py-3 px-4 hidden sm:table-cell">Penguji (Bila ada)</th><th class="py-3 px-4 text-center">Status</th><th class="py-3 px-4 text-right">Aksi</th>`; 
+            if(type === 'DATA_PESERTA') head.innerHTML = `<th class="py-3 px-4 w-10">No</th><th class="py-3 px-4">ID Peserta</th><th class="py-3 px-4">Nama Siswa</th><th class="py-3 px-4">Asal Sekolah</th><th class="py-3 px-4 hidden sm:table-cell">Penguji (Jika Ada)</th><th class="py-3 px-4 text-center">Status</th><th class="py-3 px-4 text-right">Aksi</th>`; 
             else if(type === 'REKAP_PENGISIAN') head.innerHTML = `<th class="py-3 px-4 w-10">No</th><th class="py-3 px-4">ID Peserta</th><th class="py-3 px-4">Nama Siswa</th><th class="py-3 px-4">Asal Sekolah</th><th class="py-3 px-4 text-center">Status Form</th><th class="py-3 px-4 hidden lg:table-cell">Waktu Pengisian</th><th class="py-3 px-4 text-center">Penguji</th><th class="py-3 px-4 text-center hidden lg:table-cell">Progres Nilai</th><th class="py-3 px-4 text-right">Aksi</th>`; 
             else if(type === 'REKAP_PENILAIAN') head.innerHTML = `<th class="py-3 px-4 w-10">No</th><th class="py-3 px-4">ID Peserta</th><th class="py-3 px-4">Nama Siswa</th><th class="py-3 px-4">Asal Sekolah</th>${currentUser.role !== 'penguji' ? '<th class="py-3 px-4 hidden md:table-cell">Penguji</th>' : ''}<th class="py-3 px-4 w-32 hidden sm:table-cell">Progres SMP</th><th class="py-3 px-4 text-center">Nilai SMP</th><th class="py-3 px-4 text-center">Status</th><th class="py-3 px-4 hidden lg:table-cell">Catatan Penguji</th><th class="py-3 px-4 text-right">Aksi</th>`; 
-            else if(type === 'ITEM_YAYASAN') head.innerHTML = `<th class="py-3 px-4 w-10">No</th><th class="py-3 px-4">Nama Siswa</th><th class="py-3 px-4">Penghasilan</th><th class="py-3 px-4">Stabilitas</th><th class="py-3 px-4">Anak Pendidikan</th><th class="py-3 px-4">Cicilan</th><th class="py-3 px-4">Kesiapan Daftar Ulang</th><th class="py-3 px-4">Kesiapan SPP</th><th class="py-3 px-4">Pola Bayar</th><th class="py-3 px-4 text-center text-gold-600">Nilai Yayasan</th><th class="py-3 px-4 text-right">Aksi</th>`; 
+            else if(type === 'ITEM_YAYASAN') head.innerHTML = `<th class="py-3 px-4 w-10">No</th><th class="py-3 px-4">Nama Siswa</th><th class="py-3 px-4">Penghasilan</th><th class="py-3 px-4">Stabilitas</th><th class="py-3 px-4">Anak Pend.</th><th class="py-3 px-4">Cicilan</th><th class="py-3 px-4">Kesiapan DU</th><th class="py-3 px-4">Kesiapan SPP</th><th class="py-3 px-4">Pola Bayar</th><th class="py-3 px-4 text-center text-gold-600">Nilai Yayasan</th><th class="py-3 px-4 text-right">Aksi</th>`; 
             
             renderActiveTable();
         }
@@ -981,15 +1043,16 @@
                 document.getElementById('ketercapaian-empty').classList.replace('flex', 'hidden');
                 students.forEach((s, i) => {
                     const progSMP = calcStudentProgress(s, 'SMP'); const progYay = calcStudentProgress(s, 'YAYASAN');
-                    const tSMP = progSMP.isComplete ? progSMP.totalScore : '-'; const tYay = progYay.isComplete ? progYay.totalScore : '-';
-                    const tTotal = (progSMP.isComplete && progYay.isComplete) ? progSMP.totalScore + progYay.totalScore : '-';
+                    const tSMP = progSMP.isComplete ? Number(progSMP.totalScore) : '-'; 
+                    const tYay = progYay.isComplete ? Number(progYay.totalScore) : '-';
+                    const tTotal = (tSMP !== '-' && tYay !== '-') ? tSMP + tYay : '-';
                     const pct = tTotal !== '-' ? ((tTotal/200)*100).toFixed(1)+'%' : '-';
                     let stat = (progSMP.isComplete && progYay.isComplete) ? 'Lengkap' : 'Sebagian Dinilai';
-                    let badgeClass = stat === 'Lengkap' ? "bg-green-100 text-green-700" : "bg-gold-100 text-gold-700";
+                    let badgeClass = stat === 'Lengkap' ? "bg-green-100 text-green-700 border-green-200" : "bg-gold-100 text-gold-700 border-gold-200";
                     if(stat === 'Lengkap') { smpComplete++; yayComplete++; completeCnt++; sumSMP+=tSMP; sumYay+=tYay; }
                     else { if(progSMP.isComplete) smpComplete++; if(progYay.isComplete) yayComplete++; }
 
-                    let nameCell = `<div><div class="font-bold text-slate-800">${s.nama}</div><div class="text-[10px] text-slate-400 font-semibold mt-0.5">${s.jenisKelamin}</div><div class="text-[10px] text-slate-400 font-normal font-mono mt-0.5">${s.id}</div></div>`;
+                    let nameCell = `<div><div class="font-bold text-slate-800">${s.nama}</div><div class="text-[10px] text-slate-400 font-semibold mt-0.5">${s.jenisKelamin}</div></div>`;
                     let cttn = s.grading.catatanPenguji ? s.grading.catatanPenguji : '';
                     let actionBtn = `<button onclick="openModalKetercapaian('${s.id}')" class="bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 font-bold py-1.5 px-3 rounded-lg text-[11px] transition-colors whitespace-nowrap shadow-sm"><i class="fa-solid fa-list-check mr-1"></i> Detail Rincian</button>`;
 
@@ -998,12 +1061,12 @@
                             <td class="py-4 px-4 text-center text-slate-400 text-[11px]">${i+1}</td>
                             <td class="py-4 px-4">${nameCell}</td>
                             <td class="py-4 px-4 text-slate-600 text-xs">${s.asalSekolah}</td>
-                            <td class="py-4 px-4 text-center font-mono font-bold text-primary-600">${progSMP.isComplete ? tSMP : '<span class="text-slate-300 italic text-[11px]">Belum Lengkap</span>'}</td>
-                            <td class="py-4 px-4 text-center font-mono font-bold text-gold-600">${progYay.isComplete ? tYay : '<span class="text-slate-300 italic text-[11px]">Belum Lengkap</span>'}</td>
-                            <td class="py-4 px-4 text-center font-mono font-extrabold text-blue-600 text-[15px]">${tTotal}</td>
+                            <td class="py-4 px-4 text-center font-mono font-bold text-primary-600 text-[15px]">${tSMP}</td>
+                            <td class="py-4 px-4 text-center font-mono font-bold text-gold-600 text-[15px]">${tYay}</td>
+                            <td class="py-4 px-4 text-center font-mono font-extrabold text-blue-600 text-[16px]">${tTotal}</td>
                             <td class="py-4 px-4 text-center font-bold text-slate-700">${pct}</td>
                             <td class="py-4 px-4 hidden xl:table-cell"><div class="text-[10px] text-slate-500 italic max-w-[150px] truncate" title="${cttn}">${cttn || '-'}</div></td>
-                            <td class="py-4 px-4 text-center"><span class="${badgeClass} py-1.5 px-3 rounded-lg text-[10px] font-bold border whitespace-nowrap">${statusStr}</span></td>
+                            <td class="py-4 px-4 text-center"><span class="${badgeClass} py-1.5 px-3 rounded-lg text-[10px] font-bold whitespace-nowrap border">${stat}</span></td>
                             <td class="py-4 px-4 text-right">${actionBtn}</td>
                         </tr>
                     `;
@@ -1030,7 +1093,11 @@
             const ps = calcStudentProgress(s, 'SMP'); const py = calcStudentProgress(s, 'YAYASAN');
             document.getElementById('mk-smp').innerText = ps.isComplete ? ps.totalScore : '-';
             if(currentUser.role === 'admin' || currentUser.role === 'panitia') { document.getElementById('mk-yayasan-container').classList.remove('hidden'); document.getElementById('mk-yayasan').innerText = py.isComplete ? py.totalScore : '-'; } else { document.getElementById('mk-yayasan-container').classList.add('hidden'); }
-            let t = (ps.isComplete && py.isComplete) ? (ps.totalScore + py.totalScore) : '-';
+            
+            const tSMP = ps.isComplete ? Number(ps.totalScore) : '-';
+            const tYay = py.isComplete ? Number(py.totalScore) : '-';
+            const t = (tSMP !== '-' && tYay !== '-') ? (tSMP + tYay) : '-';
+
             document.getElementById('mk-total').innerText = t; document.getElementById('mk-pct').innerText = t !== '-' ? ((t/200)*100).toFixed(1)+'%' : '-';
             document.getElementById('mk-catatan').innerText = s.grading.catatanPenguji || 'Tidak ada catatan umum dari penguji.';
             document.getElementById('modal-detail-ketercapaian').classList.replace('hidden', 'flex');
@@ -1043,7 +1110,7 @@
         let saveTimeout;
         function handleGradeChange(itemId, value) {
             const student = db.students[activeStudentId]; const type = activeGradingType;
-            if (type === 'YAYASAN') return; // Yayasan Read-only
+            if (type === 'YAYASAN') return; 
 
             const gradingData = student.grading;
             let parsedVal = parseInt(value);
@@ -1052,6 +1119,10 @@
                 let maxVal = 100; fullSchemaSMP.forEach(sec => sec.items.forEach(it => { if(it.id === itemId) maxVal = it.max; }));
                 parsedVal = Math.min(Math.max(parsedVal, 0), maxVal); 
                 gradingData.items[itemId].nilaiManual = parsedVal; gradingData.items[itemId].nilaiFinal = parsedVal;
+
+                // Sync Input if clamped
+                const el = document.querySelector(`input[oninput="handleGradeChange('${itemId}', this.value)"]`);
+                if(el && el.value != parsedVal) el.value = parsedVal;
             }
             
             let newTotal = 0; for (let key in gradingData.items) { newTotal += gradingData.items[key].nilaiFinal; }
@@ -1074,7 +1145,7 @@
                 } catch (err) {
                     showToast("Gagal menyimpan: " + err.message, false);
                 }
-            }, 1000);
+            }, 1500);
         }
 
         let generalNoteTimeout;
@@ -1090,7 +1161,7 @@
                         showToast("Gagal simpan catatan", false);
                     }
                 } 
-            }, 1000); 
+            }, 1500); 
         }
 
         // =====================================================
@@ -1110,7 +1181,7 @@
                 document.getElementById('grading-instruction-box').classList.remove('hidden');
             } else { 
                 document.getElementById('grading-general-note-container').classList.add('hidden'); 
-                document.getElementById('grading-instruction-box').classList.add('hidden'); // Yayasan ReadOnly
+                document.getElementById('grading-instruction-box').classList.add('hidden'); 
             }
             
             renderGradingForm(); document.getElementById('main-content-scroll').scrollTo({top: 0, behavior: 'smooth'});
@@ -1142,7 +1213,7 @@
                     let answerHtml = `<div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 text-[13px] font-medium text-slate-700 whitespace-pre-line">${answer || '<i class="text-slate-400">Tidak ada jawaban</i>'}</div>`;
                     if (item.id === 'prestasi_akademik' || item.id === 'prestasi_nonakademik') { 
                         // Tambahkan List Prestasi Jika Ada (JSON Ter-parse di Backend)
-                        answerHtml += student.prestasi.akademik.length > 0 ? renderPrestasiCards(student.prestasi.akademik) : '';
+                        answerHtml += student.prestasi[item.id === 'prestasi_akademik' ? 'akademik' : 'nonakademik']?.length > 0 ? renderPrestasiCards(student.prestasi[item.id === 'prestasi_akademik' ? 'akademik' : 'nonakademik']) : '';
                     }
 
                     if (item.scored) {
@@ -1196,7 +1267,7 @@
                 sec.items.forEach((item, iIdx) => {
                     const answer = student.answers[item.id];
                     let answerHtml = `<div class="mt-2 text-[13px] font-medium text-slate-700 whitespace-pre-line">${answer || '<i class="text-slate-400">Tidak ada jawaban</i>'}</div>`;
-                    if (item.id === 'prestasi_akademik') { answerHtml += renderPrestasiCards(student.prestasi.akademik); } else if (item.id === 'prestasi_nonakademik') { answerHtml += renderPrestasiCards(student.prestasi.nonakademik); }
+                    if (item.id === 'prestasi_akademik' || item.id === 'prestasi_nonakademik') { answerHtml += student.prestasi[item.id === 'prestasi_akademik' ? 'akademik' : 'nonakademik']?.length > 0 ? renderPrestasiCards(student.prestasi[item.id === 'prestasi_akademik' ? 'akademik' : 'nonakademik']) : ''; }
                     secHtml += `<div class="${iIdx > 0 ? 'pt-6' : ''}"><p class="text-[12px] font-bold text-slate-500 uppercase tracking-wider">${item.label}</p>${answerHtml}</div>`;
                 });
                 secHtml += `</div></div>`; container.innerHTML += secHtml;
