@@ -155,7 +155,7 @@
                 <!-- TABLE VIEWS -->
                 <div id="page-table-view" class="page-view hidden animate-fade-in">
                     <div class="mb-6 flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-                        <!-- <div><h2 class="text-2xl font-extrabold text-slate-800" id="table-page-title">Judul Tabel</h2><p class="text-slate-500 text-sm mt-1" id="table-page-subtitle">Deskripsi tabel.</p></div> -->
+                        <div><h2 class="text-2xl font-extrabold text-slate-800" id="table-page-title">Judul Tabel</h2><p class="text-slate-500 text-sm mt-1" id="table-page-subtitle">Deskripsi tabel.</p></div>
                         <div class="flex flex-wrap gap-2">
                             <button onclick="exportExcel()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-xl text-[12px] flex items-center gap-2 shadow-sm"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
                             <button onclick="exportPDF()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-xl text-[12px] flex items-center gap-2 shadow-sm"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
@@ -426,7 +426,7 @@
         // APPS SCRIPT API URL
         // =====================================================
         // GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-D5C-jEtDpKOLYTIp3KfRHh_4-mX9MdddATOJCJhAfCME1BTgwRH0NqTN4hbxV1c9aw/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHGTEDAECWb6rUPhyLInFlrjBeCLweGM1eFM19hCmX6gqROxEjGBALswTQMMNG936N/exec';
 
         // =====================================================
         // API FETCH WRAPPER
@@ -481,7 +481,7 @@
                 { id: "waktu_tidur", label: "Pengaturan waktu tidur dan aktivitas harian", scored: true, max: 4 }, 
                 { id: "tanggung_jawab", label: "Bentuk tanggung jawab kemandirian anak", scored: true, max: 7 }, 
                 { id: "pendamping_utama", label: "Siapa pendamping utama pendidikan anak di rumah?", scored: true, max: 4 }, 
-                { id: "kesediaan_pembiasaan", label: "Kesediaan keluarga melanjutkan pembiasaan sekolah", scored: true, max: 4 }, 
+                { id: "kesediaan_pembiasaan", label: "Kesediaan keluarga melanjutkan pembiasaan sekolah", scored: true, max: 5 }, 
                 { id: "kebiasaan_belajar", label: "Kebiasaan belajar anak di rumah", scored: true, max: 6 }, 
                 { id: "parent_school", label: "Program Parent Schools (program sekolah orang tua)", scored: true, max: 6 } 
             ] },
@@ -656,40 +656,24 @@
         }
 
         function calcStudentProgress(student, type='SMP') {
-            let graded = 0; let totalScore = 0; 
+            let totalScore = 0; 
             
             if (type === 'SMP') {
-                const itemsObj = student.grading.items;
-                let scoredCount = 0;
-                fullSchemaSMP.forEach(sec => {
-                    sec.items.forEach(item => {
-                        if(item.scored) {
-                            scoredCount++;
-                            if (itemsObj[item.id] && itemsObj[item.id].nilaiFinal !== null && itemsObj[item.id].nilaiFinal !== undefined) {
-                                // Jika form sudah diisi, otomatis nilai sistem terisi (dan karenanya terhitung graded)
-                                if(itemsObj[item.id].nilaiManual !== null || student.statusPengisian === "Sudah Mengisi") {
-                                    graded++; 
-                                    totalScore += Number(itemsObj[item.id].nilaiFinal);
-                                }
-                            }
-                        }
-                    });
-                });
-                let pct = totalScoredItemsSMP === 0 ? 0 : Math.round((totalScore/totalScoredItemsSMP)*100);
-                if(student.statusPengisian !== "Sudah Mengisi") { graded = 0; pct = 0; totalScore = 0; }
-                else { pct = 100; graded = scoredCount; } 
-
-                let hasManual = Object.values(itemsObj).some(g => g.nilaiManual !== null);
-                let isComplete = student.statusPengisian === "Sudah Mengisi" && (student.grading.catatanPenguji !== "" || hasManual || pct === 100);
-                return { graded, total: scoredCount, pct, totalScore, isComplete };
+                let isComplete = student.statusPengujian === 'Selesai';
+                totalScore = student.statusPengisian === "Sudah Mengisi" ? (student.grading.totalNilaiFinal || 0) : 0;
+                
+                let totalItems = 0;
+                fullSchemaSMP.forEach(sec => sec.items.forEach(item => { if(item.scored) totalItems++; }));
+                
+                let graded = isComplete ? totalItems : 0;
+                let pct = isComplete ? 100 : 0;
+                
+                return { graded, total: totalItems, pct, totalScore, isComplete };
             } 
             else if (type === 'YAYASAN') {
-                // Yayasan auto-calculated
                 let isComplete = student.statusPengisian === "Sudah Mengisi";
                 let totalS = student.gradingYayasan.totalNilaiFinal || 0;
-                // Kita asumsikan ada 7 poin yayasan yg dinilai otomatis jika form diisi
-                let gr = isComplete ? 7 : 0;
-                return { graded: gr, total: 7, pct: isComplete ? 100 : 0, totalScore: totalS, isComplete: isComplete };
+                return { graded: isComplete ? 7 : 0, total: 7, pct: isComplete ? 100 : 0, totalScore: totalS, isComplete: isComplete };
             }
         }
 
@@ -699,10 +683,10 @@
         function renderRoleDashboard() {
             const container = document.getElementById('dash-container');
             const students = Object.values(db.students);
-            const myStudents = getAccessibleStudents(); // now returns ALL students
+            const myStudents = getAccessibleStudents(); 
             
             let t_calon = students.length, t_sd = 0, t_sg = 0, t_bm = 0;
-            let n_smp_selesai = 0, n_smp_proses = 0, n_smp_belum = 0, sumSMP = 0, validSMPCount = 0, highestSMP = 0, lowestSMP = 100;
+            let n_smp_selesai = 0, n_smp_belum = 0, sumSMP = 0, validSMPCount = 0, highestSMP = 0, lowestSMP = 100;
             let n_yay_selesai = 0, n_yay_proses = 0, n_yay_belum = 0, sumYay = 0, validYayCount = 0, highestYay = 0, lowestYay = 100;
             let n_tot_lengkap = 0, n_tot_belum = 0, sumTotal = 0, validTotCount = 0, highestTot = 0, lowestTot = 200;
 
@@ -710,15 +694,15 @@
                 if(s.statusPengisian === "Sudah Mengisi") { t_sd++; } else if(s.statusPengisian === "Sedang Mengisi") t_sg++; else t_bm++;
                 if(s.statusPengisian === "Sudah Mengisi") {
                     const pSMP = calcStudentProgress(s, 'SMP');
-                    if(pSMP.isComplete) { n_smp_selesai++; sumSMP+=pSMP.totalScore; validSMPCount++; highestSMP=Math.max(highestSMP, pSMP.totalScore); lowestSMP=Math.min(lowestSMP, pSMP.totalScore); }
-                    else if(pSMP.graded > 0) n_smp_proses++; else n_smp_belum++;
+                    if(s.statusPengujian === 'Selesai') { n_smp_selesai++; sumSMP+=pSMP.totalScore; validSMPCount++; highestSMP=Math.max(highestSMP, pSMP.totalScore); lowestSMP=Math.min(lowestSMP, pSMP.totalScore); }
+                    else n_smp_belum++;
 
                     const pYay = calcStudentProgress(s, 'YAYASAN');
                     if(pYay.isComplete) { n_yay_selesai++; sumYay+=pYay.totalScore; validYayCount++; highestYay=Math.max(highestYay, pYay.totalScore); lowestYay=Math.min(lowestYay, pYay.totalScore); }
                     else if(pYay.graded > 0) n_yay_proses++; else n_yay_belum++;
 
                     const totScore = pSMP.totalScore + pYay.totalScore;
-                    if(pSMP.isComplete && pYay.isComplete) { n_tot_lengkap++; sumTotal+=totScore; validTotCount++; highestTot=Math.max(highestTot, totScore); lowestTot=Math.min(lowestTot, totScore); }
+                    if(s.statusPengujian === 'Selesai' && pYay.isComplete) { n_tot_lengkap++; sumTotal+=totScore; validTotCount++; highestTot=Math.max(highestTot, totScore); lowestTot=Math.min(lowestTot, totScore); }
                     else n_tot_belum++;
                 }
             });
@@ -743,7 +727,7 @@
                     <h3 class="text-sm font-extrabold text-slate-700 mb-3 border-b border-slate-200 pb-2 uppercase tracking-wide">B. Ringkasan Penilaian SMP (Maks 100)</h3>
                     <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
                         <div class="bg-blue-50 p-4 sm:p-5 rounded-2xl border border-blue-100"><p class="text-blue-600 text-[10px] font-extrabold uppercase">Selesai Dinilai</p><h3 class="text-2xl font-extrabold text-blue-800">${n_smp_selesai}</h3></div>
-                        <div class="bg-blue-50 p-4 sm:p-5 rounded-2xl border border-blue-100"><p class="text-blue-600 text-[10px] font-extrabold uppercase">Belum/Proses</p><h3 class="text-2xl font-extrabold text-blue-800">${n_smp_proses + n_smp_belum}</h3></div>
+                        <div class="bg-red-50 p-4 sm:p-5 rounded-2xl border border-red-100"><p class="text-red-600 text-[10px] font-extrabold uppercase">Belum Dinilai</p><h3 class="text-2xl font-extrabold text-red-800">${n_smp_belum}</h3></div>
                         <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-card border border-slate-100"><p class="text-slate-500 text-[10px] font-extrabold uppercase">Rata-rata SMP</p><h3 class="text-2xl font-extrabold text-slate-800">${avgSMP}</h3></div>
                         <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-card border border-slate-100"><p class="text-slate-500 text-[10px] font-extrabold uppercase">Nilai Tertinggi</p><h3 class="text-2xl font-extrabold text-green-600">${highestSMP}</h3></div>
                         <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-card border border-slate-100"><p class="text-slate-500 text-[10px] font-extrabold uppercase">Nilai Terendah</p><h3 class="text-2xl font-extrabold text-red-500">${lowestSMP}</h3></div>
@@ -778,7 +762,7 @@
                             <div class="flex justify-between items-center mb-4"><h3 class="text-sm font-extrabold text-slate-800">Perlu Perhatian</h3></div>
                             <div class="flex-grow space-y-3 overflow-y-auto max-h-[150px] hide-scrollbar border-t border-slate-100 pt-2">
                                 <div class="flex justify-between text-xs p-2 bg-red-50 rounded-lg text-red-700 font-bold border border-red-100"><span>Blm Mengisi Form:</span><span>${t_bm} Peserta</span></div>
-                                <div class="flex justify-between text-xs p-2 bg-gold-50 rounded-lg text-gold-700 font-bold border border-gold-100"><span>Blm Dinilai SMP:</span><span>${n_smp_belum + n_smp_proses} Peserta</span></div>
+                                <div class="flex justify-between text-xs p-2 bg-gold-50 rounded-lg text-gold-700 font-bold border border-gold-100"><span>Blm Dinilai SMP:</span><span>${n_smp_belum} Peserta</span></div>
                                 <div class="flex justify-between text-xs p-2 bg-blue-50 rounded-lg text-blue-700 font-bold border border-blue-100"><span>Blm Dinilai Yayasan:</span><span>${n_yay_belum + n_yay_proses} Peserta</span></div>
                                 <div class="flex justify-between text-xs p-2 bg-slate-50 rounded-lg text-slate-700 font-bold border border-slate-200"><span>Total Blm Lengkap:</span><span>${n_tot_belum} Peserta</span></div>
                             </div>
@@ -786,14 +770,14 @@
                     </div>
                 `;
                 chartConfigObj.chart1 = { type: 'doughnut', data: { labels: ['Sudah', 'Sedang', 'Belum'], datasets: [{ data: [t_sd, t_sg, t_bm], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } };
-                chartConfigObj.chart2 = { type: 'doughnut', data: { labels: ['Selesai', 'Proses', 'Belum'], datasets: [{ data: [n_smp_selesai, n_smp_proses, n_smp_belum], backgroundColor: ['#3b82f6', '#f59e0b', '#cbd5e1'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } };
+                chartConfigObj.chart2 = { type: 'doughnut', data: { labels: ['Selesai', 'Belum Dinilai'], datasets: [{ data: [n_smp_selesai, n_smp_belum], backgroundColor: ['#3b82f6', '#cbd5e1'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } };
                 chartConfigObj.chart3 = { type: 'doughnut', data: { labels: ['Selesai', 'Proses', 'Belum'], datasets: [{ data: [n_yay_selesai, n_yay_proses, n_yay_belum], backgroundColor: ['#f59e0b', '#fcd34d', '#cbd5e1'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } };
             } 
             else if(currentUser.role === 'penguji') {
-                let m_total = myStudents.length; let m_selesai = 0, m_proses = 0, m_belum = 0; let m_sumAll = 0, m_validCount = 0; let actionList = [];
+                let m_total = myStudents.length; let m_selesai = 0, m_belum = 0; let m_sumAll = 0, m_validCount = 0; let actionList = [];
                 myStudents.forEach(s => {
                     const prog = calcStudentProgress(s, 'SMP');
-                    if(prog.isComplete) { m_selesai++; m_sumAll+=prog.totalScore; m_validCount++; } else { if(prog.graded>0) m_proses++; else m_belum++; actionList.push(s); }
+                    if(s.statusPengujian === 'Selesai') { m_selesai++; m_sumAll+=prog.totalScore; m_validCount++; } else { m_belum++; actionList.push(s); }
                 });
                 let m_avg = m_validCount > 0 ? (m_sumAll/m_validCount).toFixed(1) : 0;
                 
@@ -802,8 +786,8 @@
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
                         <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-card border border-slate-100 text-center"><p class="text-slate-500 text-[10px] sm:text-[11px] font-extrabold uppercase mb-1">Total Calon Siswa</p><h3 class="text-2xl sm:text-3xl font-extrabold text-slate-800">${m_total}</h3></div>
                         <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-card border border-slate-100 text-center"><p class="text-slate-500 text-[10px] sm:text-[11px] font-extrabold uppercase mb-1 text-green-600">Selesai Dinilai</p><h3 class="text-2xl sm:text-3xl font-extrabold text-green-600">${m_selesai}</h3></div>
-                        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-card border border-slate-100 text-center"><p class="text-slate-500 text-[10px] sm:text-[11px] font-extrabold uppercase mb-1 text-gold-600">Sedang Proses</p><h3 class="text-2xl sm:text-3xl font-extrabold text-gold-600">${m_proses}</h3></div>
-                        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-card border border-slate-100 text-center"><p class="text-slate-500 text-[10px] sm:text-[11px] font-extrabold uppercase mb-1 text-blue-600">Rata-rata Nilai</p><h3 class="text-2xl sm:text-3xl font-extrabold text-blue-600">${m_avg}</h3></div>
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-card border border-slate-100 text-center md:col-span-2 xl:col-span-1"><p class="text-slate-500 text-[10px] sm:text-[11px] font-extrabold uppercase mb-1 text-red-600">Belum Dinilai</p><h3 class="text-2xl sm:text-3xl font-extrabold text-red-600">${m_belum}</h3></div>
+                        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-card border border-slate-100 text-center md:col-span-2 xl:col-span-1"><p class="text-slate-500 text-[10px] sm:text-[11px] font-extrabold uppercase mb-1 text-blue-600">Rata-rata Nilai</p><h3 class="text-2xl sm:text-3xl font-extrabold text-blue-600">${m_avg}</h3></div>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div class="lg:col-span-1 bg-white p-5 sm:p-6 rounded-2xl shadow-card border border-slate-100 flex flex-col">
@@ -815,13 +799,13 @@
                             <h3 class="text-sm font-extrabold text-slate-800 mb-4">Siswa Yang Perlu Dinilai</h3>
                             ${actionList.length === 0 ? '<div class="text-center py-10 text-slate-400 font-bold flex flex-col items-center"><i class="fa-solid fa-check-circle text-5xl text-green-400 mb-3"></i>Semua siswa sudah dinilai!</div>' : 
                             '<div class="space-y-3 overflow-y-auto flex-grow hide-scrollbar pr-1 sm:pr-2">' + actionList.slice(0,5).map(s => {
-                                const p = calcStudentProgress(s, 'SMP');
-                                return `<div class="flex flex-col sm:flex-row justify-between sm:items-center bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-100 hover:border-primary-200 transition-colors gap-3"><div class="min-w-0"><h4 class="font-extrabold text-slate-800 text-[13px] sm:text-[14px] truncate">${s.nama}</h4><p class="text-[11px] font-medium text-slate-500">Progres Penilaian: <span class="font-bold ${p.graded>0?'text-primary-600':'text-red-500'}">${p.graded}/${p.total} Item</span></p></div><button onclick="openGrading('${s.id}', 'SMP')" class="w-full sm:w-auto bg-white border-2 border-primary-200 text-primary-600 hover:bg-primary-50 font-bold py-2 px-4 rounded-xl text-xs flex justify-center items-center transition-colors"><i class="fa-solid ${p.graded>0?'fa-pen-to-square':'fa-play'} mr-1.5"></i> ${p.graded>0?'Lanjutkan':'Mulai'}</button></div>`
+                                const isComplete = s.statusPengujian === 'Selesai';
+                                return `<div class="flex flex-col sm:flex-row justify-between sm:items-center bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-100 hover:border-primary-200 transition-colors gap-3"><div class="min-w-0"><h4 class="font-extrabold text-slate-800 text-[13px] sm:text-[14px] truncate">${s.nama}</h4><p class="text-[11px] font-medium text-slate-500">Status Penilaian: <span class="font-bold text-red-500">Belum Dinilai</span></p></div><button onclick="openGrading('${s.id}', 'SMP')" class="w-full sm:w-auto bg-white border-2 border-primary-200 text-primary-600 hover:bg-primary-50 font-bold py-2 px-4 rounded-xl text-xs flex justify-center items-center transition-colors"><i class="fa-solid fa-play mr-1.5"></i> Beri Nilai</button></div>`
                             }).join('') + '</div>'}
                         </div>
                     </div>
                 `;
-                chartConfigObj.chart1 = { type: 'doughnut', data: { labels: ['Selesai', 'Belum/Proses'], datasets: [{ data: [m_selesai, m_total-m_selesai], backgroundColor: ['#10b981', '#cbd5e1'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } } };
+                chartConfigObj.chart1 = { type: 'doughnut', data: { labels: ['Selesai', 'Belum Dinilai'], datasets: [{ data: [m_selesai, m_belum], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } } };
             }
 
             container.innerHTML = html;
@@ -845,7 +829,8 @@
 
             let statusOpts = '<option value="ALL">Semua Status</option>';
             if(type === 'DATA_PESERTA' || type === 'REKAP_PENGISIAN') statusOpts += `<option value="Sudah Mengisi">Sudah Mengisi</option><option value="Sedang Mengisi">Sedang Mengisi</option><option value="Belum Mengisi">Belum Mengisi</option>`;
-            else if (type === 'REKAP_PENILAIAN' || type === 'ITEM_YAYASAN') statusOpts += `<option value="Selesai">Selesai Dinilai</option><option value="Proses">Dalam Proses</option><option value="Belum">Belum Dinilai</option>`;
+            else if (type === 'REKAP_PENILAIAN') statusOpts += `<option value="Selesai">Selesai</option><option value="Belum Dinilai">Belum Dinilai</option>`;
+            else if (type === 'ITEM_YAYASAN') statusOpts += `<option value="Selesai">Selesai Dinilai</option><option value="Proses">Dalam Proses</option><option value="Belum">Belum Dinilai</option>`;
             filterContainer.innerHTML += `<select id="table-filter-status" onchange="renderActiveTable()" class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[12px] font-bold text-slate-700 shadow-sm outline-none cursor-pointer">${statusOpts}</select>`;
 
             if(type === 'REKAP_PENILAIAN' || type === 'ITEM_YAYASAN') filterContainer.innerHTML += `<select id="table-filter-sort" onchange="renderActiveTable()" class="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[12px] font-bold text-slate-700 shadow-sm outline-none cursor-pointer"><option value="DEFAULT">Urutan Normal</option><option value="DESC">Nilai Terbesar &rarr; Terkecil</option><option value="ASC">Nilai Terkecil &rarr; Terbesar</option></select>`;
@@ -870,11 +855,16 @@
             let filtered = getAccessibleStudents().filter(s => {
                 if(!(s.nama.toLowerCase().includes(search) || s.id.toLowerCase().includes(search) || s.asalSekolah.toLowerCase().includes(search))) return false;
                 if(genderFilter !== 'ALL' && s.jenisKelamin !== genderFilter) return false;
-                if(activeTableType === 'DATA_PESERTA' || activeTableType === 'REKAP_PENGISIAN') { if(statusFilter !== 'ALL' && s.statusPengisian !== statusFilter) return false; } 
-                else if(activeTableType === 'REKAP_PENILAIAN' || activeTableType === 'ITEM_YAYASAN') {
+                if(activeTableType === 'DATA_PESERTA' || activeTableType === 'REKAP_PENGISIAN') { 
+                    if(statusFilter !== 'ALL' && s.statusPengisian !== statusFilter) return false; 
+                } 
+                else if(activeTableType === 'REKAP_PENILAIAN') {
                     if (s.statusPengisian !== "Sudah Mengisi") return false; 
-                    const pType = activeTableType === 'REKAP_PENILAIAN' ? 'SMP' : 'YAYASAN';
-                    const prog = calcStudentProgress(s, pType);
+                    if(statusFilter !== 'ALL' && s.statusPengujian !== statusFilter) return false;
+                }
+                else if(activeTableType === 'ITEM_YAYASAN') {
+                    if (s.statusPengisian !== "Sudah Mengisi") return false; 
+                    const prog = calcStudentProgress(s, 'YAYASAN');
                     let stat = prog.isComplete ? 'Selesai' : (prog.graded > 0 ? 'Proses' : 'Belum');
                     if(statusFilter !== 'ALL' && stat !== statusFilter) return false;
                 }
@@ -906,10 +896,14 @@
                 let pct = t_calon > 0 ? Math.round((t_sd/t_calon)*100) : 0;
                 summaryBox.innerHTML = `<div class="bg-white p-3 rounded-xl border border-slate-200 text-center"><p class="text-[10px] text-slate-500 font-bold uppercase">Total Peserta</p><p class="text-xl font-extrabold text-slate-800">${t_calon}</p></div><div class="bg-green-50 p-3 rounded-xl border border-green-100 text-center"><p class="text-[10px] text-green-700 font-bold uppercase">Sudah Mengisi</p><p class="text-xl font-extrabold text-green-800">${t_sd}</p></div><div class="bg-gold-50 p-3 rounded-xl border border-gold-100 text-center"><p class="text-[10px] text-gold-700 font-bold uppercase">Sedang Mengisi</p><p class="text-xl font-extrabold text-gold-800">${t_sg}</p></div><div class="bg-red-50 p-3 rounded-xl border border-red-100 text-center"><p class="text-[10px] text-red-700 font-bold uppercase">Belum Mengisi</p><p class="text-xl font-extrabold text-red-800">${t_bm}</p></div><div class="bg-primary-50 p-3 rounded-xl border border-primary-100 text-center md:col-span-2 xl:col-span-2"><p class="text-[10px] text-primary-700 font-bold uppercase">Persentase Pengisian</p><p class="text-xl font-extrabold text-primary-800">${pct}%</p></div>`;
             } else if (type === 'REKAP_PENILAIAN') {
-                let n_sel = 0, n_pro = 0, n_bel = 0, sum=0, max=-1, min=999;
-                students.forEach(s => { const p = calcStudentProgress(s, 'SMP'); if(p.isComplete) { n_sel++; sum+=p.totalScore; max=Math.max(max, p.totalScore); min=Math.min(min, p.totalScore); } else if(p.graded>0) n_pro++; else n_bel++; });
+                let n_sel = 0, n_bel = 0, sum=0, max=-1, min=999;
+                students.forEach(s => { 
+                    const p = calcStudentProgress(s, 'SMP'); 
+                    if(s.statusPengujian === 'Selesai') { n_sel++; sum+=p.totalScore; max=Math.max(max, p.totalScore); min=Math.min(min, p.totalScore); } 
+                    else n_bel++; 
+                });
                 if(n_sel===0) { min=0; max=0; }
-                summaryBox.innerHTML = `<div class="bg-white p-3 rounded-xl border border-slate-200 text-center"><p class="text-[10px] text-slate-500 font-bold uppercase">Total Ditampilkan</p><p class="text-xl font-extrabold text-slate-800">${t_calon}</p></div><div class="bg-blue-50 p-3 rounded-xl border border-blue-100 text-center"><p class="text-[10px] text-blue-700 font-bold uppercase">Selesai</p><p class="text-xl font-extrabold text-blue-800">${n_sel}</p></div><div class="bg-gold-50 p-3 rounded-xl border border-gold-100 text-center"><p class="text-[10px] text-gold-700 font-bold uppercase">Proses</p><p class="text-xl font-extrabold text-gold-800">${n_pro}</p></div><div class="bg-red-50 p-3 rounded-xl border border-red-100 text-center"><p class="text-[10px] text-red-700 font-bold uppercase">Belum Dinilai</p><p class="text-xl font-extrabold text-red-800">${n_bel}</p></div><div class="bg-primary-50 p-3 rounded-xl border border-primary-100 text-center"><p class="text-[10px] text-primary-700 font-bold uppercase">Rata-rata SMP</p><p class="text-xl font-extrabold text-primary-800">${n_sel>0?(sum/n_sel).toFixed(1):0}</p></div><div class="bg-green-50 p-3 rounded-xl border border-green-100 text-center"><p class="text-[10px] text-green-700 font-bold uppercase">Tertinggi/Terendah</p><p class="text-xl font-extrabold text-green-800">${max} <span class="text-slate-400 font-medium text-sm">vs</span> <span class="text-red-500">${min}</span></p></div>`;
+                summaryBox.innerHTML = `<div class="bg-white p-3 rounded-xl border border-slate-200 text-center"><p class="text-[10px] text-slate-500 font-bold uppercase">Total Ditampilkan</p><p class="text-xl font-extrabold text-slate-800">${t_calon}</p></div><div class="bg-blue-50 p-3 rounded-xl border border-blue-100 text-center md:col-span-2 xl:col-span-1"><p class="text-[10px] text-blue-700 font-bold uppercase">Selesai Dinilai</p><p class="text-xl font-extrabold text-blue-800">${n_sel}</p></div><div class="bg-red-50 p-3 rounded-xl border border-red-100 text-center md:col-span-2 xl:col-span-1"><p class="text-[10px] text-red-700 font-bold uppercase">Belum Dinilai</p><p class="text-xl font-extrabold text-red-800">${n_bel}</p></div><div class="bg-primary-50 p-3 rounded-xl border border-primary-100 text-center"><p class="text-[10px] text-primary-700 font-bold uppercase">Rata-rata SMP</p><p class="text-xl font-extrabold text-primary-800">${n_sel>0?(sum/n_sel).toFixed(1):0}</p></div><div class="bg-green-50 p-3 rounded-xl border border-green-100 text-center md:col-span-2 xl:col-span-2"><p class="text-[10px] text-green-700 font-bold uppercase">Tertinggi/Terendah</p><p class="text-xl font-extrabold text-green-800">${max} <span class="text-slate-400 font-medium text-sm">vs</span> <span class="text-red-500">${min}</span></p></div>`;
             } else if (type === 'ITEM_YAYASAN') {
                 let n_sel = 0, n_bel = 0, sum=0, max=-1, min=999;
                 students.forEach(s => { const p = calcStudentProgress(s, 'YAYASAN'); if(p.isComplete) { n_sel++; sum+=p.totalScore; max=Math.max(max, p.totalScore); min=Math.min(min, p.totalScore); } else n_bel++; });
@@ -938,17 +932,16 @@
                         tr.innerHTML = `<td class="py-3 px-4 text-center">${i+1}</td><td class="py-3 px-4 font-mono text-[11px]">${s.id}</td><td class="py-3 px-4">${nameCell}</td><td class="py-3 px-4"><div class="truncate max-w-[150px]">${s.asalSekolah}</div></td><td class="py-3 px-4 hidden sm:table-cell">${pengujiName}</td><td class="py-3 px-4 text-center"><span class="${statBadge} py-1 px-2.5 rounded-lg text-[10px] font-bold border">${s.statusPengisian}</span></td><td class="py-3 px-4 text-right">${actDetail}</td>`;
                     } else if(activeTableType === 'REKAP_PENGISIAN') {
                         const prog = calcStudentProgress(s, 'SMP');
-                        let pBadge = prog.isComplete ? 'bg-green-100 text-green-700 border-green-200' : (prog.graded > 0 ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-slate-100 text-slate-600 border-slate-200');
-                        let pText = prog.isComplete ? 'Selesai' : (prog.graded > 0 ? 'Proses' : 'Belum');
-                        let progEl = s.statusPengisian === 'Sudah Mengisi' ? `<span class="${pBadge} py-1 px-2.5 rounded-lg text-[10px] font-bold border">${prog.pct}% (${pText})</span>` : '-';
+                        let pBadge = s.statusPengujian === 'Selesai' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200';
+                        let progEl = s.statusPengisian === 'Sudah Mengisi' ? `<span class="${pBadge} py-1 px-2.5 rounded-lg text-[10px] font-bold border">${prog.pct}% (${s.statusPengujian})</span>` : '-';
                         tr.innerHTML = `<td class="py-3 px-4 text-center">${i+1}</td><td class="py-3 px-4 font-mono text-[10px]">${s.id}</td><td class="py-3 px-4">${nameCell}</td><td class="py-3 px-4"><div class="truncate max-w-[150px]">${s.asalSekolah}</div></td><td class="py-3 px-4 text-center"><span class="${statBadge} py-1 px-2.5 rounded-lg text-[10px] font-bold border">${s.statusPengisian}</span></td><td class="py-3 px-4 font-mono text-[10px] hidden lg:table-cell">${s.waktuPengisian}</td><td class="py-3 px-4 text-center text-xs">${pengujiName}</td><td class="py-3 px-4 text-center hidden lg:table-cell">${progEl}</td><td class="py-3 px-4 text-right">${actDetail}</td>`;
                     } else if(activeTableType === 'REKAP_PENILAIAN') {
-                        const prog = calcStudentProgress(s, 'SMP'); let isComplete = prog.isComplete;
-                        let pBadge = isComplete ? 'bg-green-100 text-green-700 border-green-200' : (prog.graded > 0 ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-slate-100 text-slate-600 border-slate-200');
-                        let pText = isComplete ? 'Selesai' : (prog.graded > 0 ? 'Proses' : 'Belum');
+                        const prog = calcStudentProgress(s, 'SMP'); 
+                        let isComplete = s.statusPengujian === 'Selesai';
+                        let pBadge = isComplete ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200';
                         let avgColor = isComplete ? (prog.totalScore >= 80 ? 'text-green-600' : (prog.totalScore >= 70 ? 'text-primary-600' : 'text-gold-600')) : 'text-slate-400';
                         let actGrade = (currentUser.role === 'penguji' || currentUser.role === 'admin' || currentUser.role === 'panitia') && s.statusPengisian === 'Sudah Mengisi' ? `<button onclick="openGrading('${s.id}', 'SMP')" class="bg-white border-2 border-primary-200 text-primary-600 hover:bg-primary-50 hover:border-primary-300 font-bold py-1.5 px-3 rounded-lg text-[11px] whitespace-nowrap shadow-sm"><i class="fa-solid ${isComplete?'fa-eye':'fa-pen-to-square'}"></i> ${isComplete?'Lihat Nilai':'Beri Nilai'}</button>` : ``;
-                        tr.innerHTML = `<td class="py-4 px-4 text-center">${i+1}</td><td class="py-4 px-4 font-mono text-[10px]">${s.id}</td><td class="py-4 px-4">${nameCell}</td><td class="py-4 px-4"><div class="truncate max-w-[100px]">${s.asalSekolah}</div></td>${currentUser.role !== 'penguji' ? `<td class="py-4 px-4 hidden md:table-cell">${pengujiName}</td>` : ''}<td class="py-4 px-4 hidden sm:table-cell"><div class="flex justify-between text-[10px] font-bold mb-1"><span>${prog.graded}/${prog.total}</span><span class="${isComplete?'text-green-600':'text-primary-600'}">${prog.pct}%</span></div><div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden"><div class="bg-${isComplete?'green':'primary'}-500 h-full" style="width: ${prog.pct}%"></div></div></td><td class="py-4 px-4 text-center font-extrabold ${avgColor} font-mono text-[15px]">${isComplete?prog.totalScore:'-'}</td><td class="py-4 px-4 text-center"><span class="${pBadge} py-1 px-2.5 rounded-lg text-[10px] font-bold border">${pText}</span></td><td class="py-4 px-4 hidden lg:table-cell"><div class="text-[11px] truncate max-w-[150px] italic">${s.grading.catatanPenguji || '-'}</div></td><td class="py-4 px-4 text-right flex justify-end gap-2">${actDetail} ${actGrade}</td>`;
+                        tr.innerHTML = `<td class="py-4 px-4 text-center">${i+1}</td><td class="py-4 px-4 font-mono text-[10px]">${s.id}</td><td class="py-4 px-4">${nameCell}</td><td class="py-4 px-4"><div class="truncate max-w-[100px]">${s.asalSekolah}</div></td>${currentUser.role !== 'penguji' ? `<td class="py-4 px-4 hidden md:table-cell">${pengujiName}</td>` : ''}<td class="py-4 px-4 hidden sm:table-cell"><div class="flex justify-between text-[10px] font-bold mb-1"><span>${prog.graded}/${prog.total}</span><span class="${isComplete?'text-green-600':'text-red-500'}">${prog.pct}%</span></div><div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden"><div class="bg-${isComplete?'green':'red'}-500 h-full" style="width: ${prog.pct}%"></div></div></td><td class="py-4 px-4 text-center font-extrabold ${avgColor} font-mono text-[15px]">${isComplete?prog.totalScore:'-'}</td><td class="py-4 px-4 text-center"><span class="${pBadge} py-1 px-2.5 rounded-lg text-[10px] font-bold border">${s.statusPengujian}</span></td><td class="py-4 px-4 hidden lg:table-cell"><div class="text-[11px] truncate max-w-[150px] italic">${s.grading.catatanPenguji || '-'}</div></td><td class="py-4 px-4 text-right flex justify-end gap-2">${actDetail} ${actGrade}</td>`;
                     } else if(activeTableType === 'ITEM_YAYASAN') {
                         const ans = s.answers; const yItems = s.gradingYayasan.items;
                         let vPenghasilan = `<div class="text-[11px] truncate max-w-[120px]" title="${ans['penghasilan']}">${ans['penghasilan'] || '-'}</div><div class="text-[10px] font-bold text-gold-600 mt-0.5">Poin: ${yItems['penghasilan']?.nilaiFinal || 0}</div>`;
@@ -1191,6 +1184,102 @@
             activeStudentId = null; document.getElementById('page-grading').classList.add('hidden'); document.getElementById('page-detail-form').classList.add('hidden');
             routePage(activePage); 
         }
+        
+
+        // =====================================================
+        // UNIVERSAL ANSWER RENDERER (Pendeteksi JSON & Array)
+        // =====================================================
+        function formatUniversalAnswer(answer, itemId) {
+            if (answer === undefined || answer === null || String(answer).trim() === "") {
+                return '<span class="text-slate-400 font-bold">—</span>';
+            }
+
+            let ansStr = String(answer).trim();
+
+            // 1. Deteksi jawaban "Tidak"
+            if (ansStr.toLowerCase() === 'tidak' || ansStr.toLowerCase() === 'tidak ada') {
+                return '<span class="text-red-500 font-bold"><i class="fa-solid fa-xmark mr-1.5"></i> Tidak / Tidak Ada</span>';
+            }
+
+            // Helper format key (snake_case -> Title Case)
+            const formatKey = (key) => key.replace(/_/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.substr(1).toLowerCase());
+            
+            // Helper format value & URL
+            const isUrl = (s) => typeof s === 'string' && s.match(/^https?:\/\/[^\s]+$/);
+            const formatValue = (val) => {
+                if (val === "" || val === null || val === undefined) return '<span class="text-slate-300">—</span>';
+                if (isUrl(val)) return `<a href="${val}" target="_blank" class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 font-bold py-1.5 px-3 rounded-lg text-[11px] transition-colors"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Tautan</a>`;
+                return val;
+            };
+
+            // 2. Coba parse sebagai JSON
+            if (ansStr.startsWith('{') || ansStr.startsWith('[')) {
+                try {
+                    const parsed = JSON.parse(ansStr);
+                    
+                    if (Array.isArray(parsed)) {
+                        if (parsed.length === 0) return '<span class="text-slate-400 font-bold">—</span>';
+                        
+                        // JSON Array of Objects
+                        if (typeof parsed[0] === 'object' && parsed[0] !== null) {
+                            // Cek jika ini format Prestasi (Punya field nama, pencapaian, bukti)
+                            if (parsed[0].hasOwnProperty('nama') && (parsed[0].hasOwnProperty('pencapaian') || parsed[0].hasOwnProperty('bukti'))) {
+                                return renderPrestasiCards(parsed); // Gunakan fungsi card prestasi bawaan sistem
+                            }
+                            
+                            // Jika bukan prestasi, render sebagai Card Data Generik
+                            return `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">` + parsed.map(obj => {
+                                let cardHtml = `<div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm hover:border-primary-300 transition-colors space-y-2">`;
+                                for (let k in obj) {
+                                    cardHtml += `<div class="flex flex-col"><span class="font-extrabold text-[10px] text-slate-500 uppercase tracking-wider mb-0.5">${formatKey(k)}</span> <div class="text-[12px] text-slate-800 font-bold">${formatValue(obj[k])}</div></div>`;
+                                }
+                                cardHtml += `</div>`;
+                                return cardHtml;
+                            }).join('') + `</div>`;
+                        }
+                        
+                        // JSON Array of Strings
+                        return `<ul class="space-y-2 mt-2">` + parsed.map(item => `
+                            <li class="flex items-start gap-2.5 text-[13px] text-slate-700 bg-white p-2.5 rounded-lg border border-slate-100 shadow-sm">
+                                <i class="fa-solid fa-circle-check text-green-500 mt-0.5 text-base"></i> <span class="font-semibold leading-relaxed">${item}</span>
+                            </li>`).join('') + `</ul>`;
+                    }
+                    
+                    // JSON Object
+                    if (typeof parsed === 'object' && parsed !== null) {
+                        let objHtml = `<div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm mt-3 w-full sm:max-w-md space-y-3">`;
+                        for (let k in parsed) {
+                            objHtml += `<div class="flex flex-col border-b border-slate-50 pb-2 last:border-0 last:pb-0"><span class="font-extrabold text-[10px] text-slate-400 uppercase tracking-wider mb-1">${formatKey(k)}</span> <span class="text-[13px] text-slate-800 font-bold">${formatValue(parsed[k])}</span></div>`;
+                        }
+                        objHtml += `</div>`;
+                        return objHtml;
+                    }
+                } catch (e) {
+                    // Jika gagal parse, lanjut sebagai teks biasa
+                }
+            }
+
+            // 3. Deteksi Multiple Answers pisah koma (Tanggung Jawab, Kemitraan)
+            const targetMultiFields = ['tanggung_jawab', 'kemitraan', 'komitmen_kemitraan'];
+            if (targetMultiFields.includes(itemId) || (ansStr.includes(',') && ansStr.split(',').length > 1 && !ansStr.includes('.'))) {
+                const parts = ansStr.split(',').map(s => s.trim()).filter(Boolean);
+                if (parts.length > 1) {
+                    return `<ul class="space-y-2 mt-2">` + parts.map(item => `
+                        <li class="flex items-start gap-2.5 text-[13px] text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm">
+                            <i class="fa-solid fa-check text-white bg-green-500 rounded-full w-5 h-5 flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5"></i> 
+                            <span class="font-semibold leading-relaxed">${item}</span>
+                        </li>`).join('') + `</ul>`;
+                }
+            }
+
+            // 4. Teks Biasa (Deteksi URL jika diselipkan di dalam teks)
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            if (ansStr.match(urlRegex) && !ansStr.includes('<a')) {
+                 return ansStr.replace(urlRegex, (url) => formatValue(url));
+            }
+
+            return ansStr;
+        }
 
         function renderGradingForm() {
             const student = db.students[activeStudentId]; const type = activeGradingType;
@@ -1210,11 +1299,16 @@
                 
                 sec.items.forEach((item, iIdx) => {
                     const answer = student.answers[item.id];
-                    let answerHtml = `<div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 text-[13px] font-medium text-slate-700 whitespace-pre-line">${answer || '<i class="text-slate-400">Tidak ada jawaban</i>'}</div>`;
-                    if (item.id === 'prestasi_akademik' || item.id === 'prestasi_nonakademik') { 
-                        // Tambahkan List Prestasi Jika Ada (JSON Ter-parse di Backend)
-                        answerHtml += student.prestasi[item.id === 'prestasi_akademik' ? 'akademik' : 'nonakademik']?.length > 0 ? renderPrestasiCards(student.prestasi[item.id === 'prestasi_akademik' ? 'akademik' : 'nonakademik']) : '';
+                    let formattedAnswer = formatUniversalAnswer(answer, item.id);
+                    let backendPrestasi = '';
+
+                    // Tambahkan fallback list Prestasi dari backend JIKA datanya adalah "Ya" (bukan JSON)
+                    if ((item.id === 'prestasi_akademik' || item.id === 'prestasi_nonakademik') && answer === 'Ya') {
+                        backendPrestasi = student.prestasi[item.id === 'prestasi_akademik' ? 'akademik' : 'nonakademik']?.length > 0 ? renderPrestasiCards(student.prestasi[item.id === 'prestasi_akademik' ? 'akademik' : 'nonakademik']) : '';
                     }
+
+                    // Gunakan style rapi tanpa 'whitespace-pre-line' yang merusak flexbox checklist
+                    let answerHtml = `<div class="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 text-[13px] font-medium text-slate-700">${formattedAnswer}</div>${backendPrestasi}`;
 
                     if (item.scored) {
                         scoredItemsCount++; const itemGrade = gradingData.items[item.id] || { nilaiSistem: 0, nilaiManual: null, nilaiFinal: 0 };
@@ -1266,8 +1360,14 @@
                 let secHtml = `<div class="bg-white rounded-2xl shadow-card border border-slate-200 overflow-hidden mb-6"><div class="bg-slate-50 border-b border-slate-200 px-5 py-4 flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 font-extrabold text-[12px] shadow-sm flex-shrink-0">${sIdx + 1}</div><h4 class="font-extrabold text-slate-800 text-[14px] sm:text-[15px]">${sec.title}</h4></div><div class="p-5 sm:p-6 space-y-6 divide-y divide-slate-100">`;
                 sec.items.forEach((item, iIdx) => {
                     const answer = student.answers[item.id];
-                    let answerHtml = `<div class="mt-2 text-[13px] font-medium text-slate-700 whitespace-pre-line">${answer || '<i class="text-slate-400">Tidak ada jawaban</i>'}</div>`;
-                    if (item.id === 'prestasi_akademik' || item.id === 'prestasi_nonakademik') { answerHtml += student.prestasi[item.id === 'prestasi_akademik' ? 'akademik' : 'nonakademik']?.length > 0 ? renderPrestasiCards(student.prestasi[item.id === 'prestasi_akademik' ? 'akademik' : 'nonakademik']) : ''; }
+                    let formattedAnswer = formatUniversalAnswer(answer, item.id);
+                    let backendPrestasi = '';
+
+                    if ((item.id === 'prestasi_akademik' || item.id === 'prestasi_nonakademik') && answer === 'Ya') {
+                        backendPrestasi = student.prestasi[item.id === 'prestasi_akademik' ? 'akademik' : 'nonakademik']?.length > 0 ? renderPrestasiCards(student.prestasi[item.id === 'prestasi_akademik' ? 'akademik' : 'nonakademik']) : '';
+                    }
+
+                    let answerHtml = `<div class="mt-2 text-[13px] font-medium text-slate-700">${formattedAnswer}</div>${backendPrestasi}`;
                     secHtml += `<div class="${iIdx > 0 ? 'pt-6' : ''}"><p class="text-[12px] font-bold text-slate-500 uppercase tracking-wider">${item.label}</p>${answerHtml}</div>`;
                 });
                 secHtml += `</div></div>`; container.innerHTML += secHtml;
@@ -1278,7 +1378,7 @@
             if (!prestasiArray || prestasiArray.length === 0) return '';
             return `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-2">` + prestasiArray.map((p) => {
                 const safeJsonStr = JSON.stringify(p).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-                return `<div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm relative overflow-hidden group hover:border-primary-300 transition-colors"><div class="flex items-start gap-3 mb-3"><div class="w-8 h-8 rounded-full bg-gold-50 text-gold-500 flex items-center justify-center flex-shrink-0 text-sm border border-gold-100 shadow-sm"><i class="fa-solid fa-medal"></i></div><div class="min-w-0"><h5 class="text-[13px] font-extrabold text-slate-800 leading-tight truncate" title="${p.nama}">${p.nama}</h5><p class="text-[11px] font-bold text-gold-600 mt-0.5">${p.pencapaian || '-'}</p></div></div><div class="text-[11px] text-slate-500 font-medium mb-3 flex-grow space-y-1"><div class="flex gap-2 items-center"><i class="fa-solid fa-layer-group w-3 text-slate-400 text-center"></i> <span class="truncate">${p.tingkat || '-'}</span></div><div class="flex gap-2 items-center"><i class="fa-solid fa-calendar w-3 text-slate-400 text-center"></i> <span>${p.tahun || '-'}</span></div>${p.keterangan ? `<div class="flex gap-2 items-start"><i class="fa-solid fa-quote-left w-3 text-slate-300 mt-0.5 text-center"></i> <span class="italic text-[10px] leading-snug line-clamp-2" title="${p.keterangan}">${p.keterangan}</span></div>` : ''}</div>${p.bukti ? `<button type="button" onclick="openModalPrestasi('${safeJsonStr}')" class="w-full mt-auto bg-slate-50 hover:bg-primary-50 text-slate-600 hover:text-primary-700 font-bold py-2 rounded-lg text-[11px] transition-colors border border-slate-200 flex items-center justify-center gap-2"><i class="fa-solid fa-image"></i> Lihat Bukti</button>` : `<div class="w-full mt-auto bg-slate-50 text-slate-400 font-semibold py-2 rounded-lg text-[11px] text-center border border-slate-100 cursor-not-allowed"><i class="fa-solid fa-file-excel mr-1"></i> Tidak Ada File</div>`}</div>`
+                return `<div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm relative overflow-hidden group hover:border-primary-300 transition-colors flex flex-col h-full"><div class="flex items-start gap-3 mb-3"><div class="w-8 h-8 rounded-full bg-gold-50 text-gold-500 flex items-center justify-center flex-shrink-0 text-sm border border-gold-100 shadow-sm"><i class="fa-solid fa-medal"></i></div><div class="min-w-0"><h5 class="text-[13px] font-extrabold text-slate-800 leading-tight break-words whitespace-normal">${p.nama}</h5><p class="text-[11px] font-bold text-gold-600 mt-0.5">${p.pencapaian || '-'}</p></div></div><div class="text-[11px] text-slate-500 font-medium mb-3 flex-grow space-y-1"><div class="flex gap-2 items-center"><i class="fa-solid fa-layer-group w-3 text-slate-400 text-center"></i> <span class="truncate">${p.tingkat || '-'}</span></div><div class="flex gap-2 items-center"><i class="fa-solid fa-calendar w-3 text-slate-400 text-center"></i> <span>${p.tahun || '-'}</span></div>${p.keterangan ? `<div class="flex gap-2 items-start"><i class="fa-solid fa-quote-left w-3 text-slate-300 mt-0.5 text-center"></i> <span class="italic text-[10px] leading-snug line-clamp-2" title="${p.keterangan}">${p.keterangan}</span></div>` : ''}</div>${p.bukti ? `<button type="button" onclick="openModalPrestasi('${safeJsonStr}')" class="w-full mt-auto bg-slate-50 hover:bg-primary-50 text-slate-600 hover:text-primary-700 font-bold py-2 rounded-lg text-[11px] transition-colors border border-slate-200 flex items-center justify-center gap-2"><i class="fa-solid fa-image"></i> Lihat Bukti</button>` : `<div class="w-full mt-auto bg-slate-50 text-slate-400 font-semibold py-2 rounded-lg text-[11px] text-center border border-slate-100 cursor-not-allowed"><i class="fa-solid fa-file-excel mr-1"></i> Tidak Ada File</div>`}</div>`
             }).join('') + `</div>`;
         }
 
@@ -1312,7 +1412,7 @@
         // =====================================================
         function renderFullCharts() {
             destroyCharts(); const students = Object.values(db.students);
-            let p_sd=0, p_sg=0, p_bm=0; let smp_sel=0, smp_pro=0, smp_bel=0; let yay_sel=0, yay_pro=0, yay_bel=0;
+            let p_sd=0, p_sg=0, p_bm=0; let smp_sel=0, smp_bel=0; let yay_sel=0, yay_pro=0, yay_bel=0;
             let distSMP = {'<70':0, '70-79':0, '80-89':0, '90-100':0};
             let distTot = {'<120':0, '120-139':0, '140-159':0, '160-179':0, '180-200':0};
             let sectionScores = Array(10).fill(0), sectionCounts = Array(10).fill(0);
@@ -1321,14 +1421,14 @@
                 if(s.statusPengisian === "Sudah Mengisi") p_sd++; else if(s.statusPengisian === "Sedang Mengisi") p_sg++; else p_bm++;
                 if(s.statusPengisian === "Sudah Mengisi") {
                     const ps = calcStudentProgress(s, 'SMP'); const py = calcStudentProgress(s, 'YAYASAN');
-                    if(ps.isComplete) smp_sel++; else if(ps.graded>0) smp_pro++; else smp_bel++;
+                    if(s.statusPengujian === 'Selesai') smp_sel++; else smp_bel++;
                     if(py.isComplete) yay_sel++; else if(py.graded>0) yay_pro++; else yay_bel++;
 
-                    if(ps.isComplete) {
+                    if(s.statusPengujian === 'Selesai') {
                         let val = ps.totalScore;
                         if(val < 70) distSMP['<70']++; else if(val < 80) distSMP['70-79']++; else if(val < 90) distSMP['80-89']++; else distSMP['90-100']++;
                     }
-                    if(ps.isComplete && py.isComplete) {
+                    if(s.statusPengujian === 'Selesai' && py.isComplete) {
                         let tot = ps.totalScore + py.totalScore;
                         if(tot < 120) distTot['<120']++; else if(tot < 140) distTot['120-139']++; else if(tot < 160) distTot['140-159']++; else if(tot < 180) distTot['160-179']++; else distTot['180-200']++;
                     }
@@ -1341,7 +1441,7 @@
             let radarData = sectionScores.map((score, i) => sectionCounts[i] > 0 ? Math.round(score/sectionCounts[i]) : 0);
 
             fullCharts.c1 = new Chart(document.getElementById('chart-pengisian-full').getContext('2d'), { type: 'pie', data: { labels: ['Sudah', 'Sedang', 'Belum'], datasets: [{ data: [p_sd, p_sg, p_bm], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], borderWidth: 1, borderColor: '#fff' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
-            fullCharts.c2 = new Chart(document.getElementById('chart-penilaian-smp-full').getContext('2d'), { type: 'doughnut', data: { labels: ['Selesai', 'Proses', 'Belum'], datasets: [{ data: [smp_sel, smp_pro, smp_bel], backgroundColor: ['#3b82f6', '#f59e0b', '#cbd5e1'], borderWidth: 1, borderColor: '#fff' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+            fullCharts.c2 = new Chart(document.getElementById('chart-penilaian-smp-full').getContext('2d'), { type: 'doughnut', data: { labels: ['Selesai', 'Belum Dinilai'], datasets: [{ data: [smp_sel, smp_bel], backgroundColor: ['#3b82f6', '#cbd5e1'], borderWidth: 1, borderColor: '#fff' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
             fullCharts.c5 = new Chart(document.getElementById('chart-distribusi-smp-full').getContext('2d'), { type: 'bar', data: { labels: Object.keys(distSMP), datasets: [{ label: 'Jumlah Siswa (SMP)', data: Object.values(distSMP), backgroundColor: '#3b82f6', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
             
             if(currentUser.role === 'admin' || currentUser.role === 'panitia') {
@@ -1368,13 +1468,13 @@
                 data = students.map((s, i) => {
                     const ps = calcStudentProgress(s, 'SMP'); const py = calcStudentProgress(s, 'YAYASAN');
                     let statusStr = "Belum Lengkap";
-                    if(ps.isComplete && py.isComplete) statusStr = "Lengkap"; else if(ps.isComplete || py.isComplete || ps.totalScore>0 || py.totalScore>0) statusStr = "Sebagian Dinilai";
+                    if(s.statusPengujian === 'Selesai' && py.isComplete) statusStr = "Lengkap"; else if(s.statusPengujian === 'Selesai' || py.isComplete || ps.totalScore>0 || py.totalScore>0) statusStr = "Sebagian Dinilai";
                     return {
                         "No": i+1, "ID Peserta": s.id, "Nama Siswa": s.nama, "Jenis Kelamin": s.jenisKelamin, "Asal Sekolah": s.asalSekolah,
-                        "Nilai SMP (Max 100)": ps.isComplete ? ps.totalScore : "Belum Lengkap",
+                        "Nilai SMP (Max 100)": s.statusPengujian === 'Selesai' ? ps.totalScore : "Belum Lengkap",
                         "Nilai Yayasan (Max 100)": py.isComplete ? py.totalScore : "Belum Lengkap",
-                        "Total Ketercapaian (Max 200)": (ps.isComplete && py.isComplete) ? ps.totalScore+py.totalScore : "Belum Lengkap",
-                        "Persentase": (ps.isComplete && py.isComplete) ? (((ps.totalScore+py.totalScore)/200)*100).toFixed(1)+'%' : "-",
+                        "Total Ketercapaian (Max 200)": (s.statusPengujian === 'Selesai' && py.isComplete) ? ps.totalScore+py.totalScore : "Belum Lengkap",
+                        "Persentase": (s.statusPengujian === 'Selesai' && py.isComplete) ? (((ps.totalScore+py.totalScore)/200)*100).toFixed(1)+'%' : "-",
                         "Catatan Penguji SMP": s.grading.catatanPenguji || "",
                         "Status": statusStr
                     };
@@ -1387,11 +1487,11 @@
                         base["Status Form"] = s.statusPengisian; base["Penguji"] = s.pengujiId || "Belum ditugaskan";
                     } else if(type === 'REKAP_PENGISIAN') {
                         base["Status Form"] = s.statusPengisian; base["Waktu Pengisian"] = s.waktuPengisian;
-                        const p = calcStudentProgress(s, 'SMP'); base["Progres Penilaian SMP"] = `${p.pct}% (${p.graded}/${p.total})`;
+                        const p = calcStudentProgress(s, 'SMP'); base["Progres Penilaian SMP"] = `${p.pct}% (${s.statusPengujian})`;
                     } else if(type === 'REKAP_PENILAIAN') {
                         const p = calcStudentProgress(s, 'SMP');
-                        base["Penguji"] = s.pengujiId || "Belum ditugaskan"; base["Nilai SMP"] = p.isComplete ? p.totalScore : "Belum Lengkap";
-                        base["Status Penilaian"] = p.isComplete ? "Selesai" : (p.graded>0?"Proses":"Belum Dinilai"); base["Catatan Penguji"] = s.grading.catatanPenguji || "";
+                        base["Penguji"] = s.pengujiId || "Belum ditugaskan"; base["Nilai SMP"] = s.statusPengujian === 'Selesai' ? p.totalScore : "Belum Lengkap";
+                        base["Status Penilaian"] = s.statusPengujian; base["Catatan Penguji"] = s.grading.catatanPenguji || "";
                     } else if(type === 'ITEM_YAYASAN') {
                         const p = calcStudentProgress(s, 'YAYASAN');
                         base["Penghasilan"] = s.answers['penghasilan'] || "-";
